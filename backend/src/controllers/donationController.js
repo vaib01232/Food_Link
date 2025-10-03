@@ -13,12 +13,12 @@ const createDonation = async (req, res) => {
             photos       
         } = req.body;
 
-        if (!req.user || !req.user._id) {
+        if (!req.user || !req.user.id) {
             return res.status(401).json({ message: 'Unauthorized' });
         }
 
         const newDonation = new Donation({
-            donorId: req.user._id,
+            donorId: req.user.id,
             title,
             description,
             quantity,
@@ -39,8 +39,6 @@ const createDonation = async (req, res) => {
 };
 
 const getDonations = async (req, res) => {
-    console.log("REQ.USER:", req.user);
-
     try{
         const donations = await Donation.find({ status: "available" }).populate("donorId", "name email phoneNumber address");
         res.json(donations);
@@ -55,7 +53,7 @@ const claimDonation = async (req, res) => {
         if(!donation) return res.status(404).json({ message: "Donation not found" });
         if(donation.status !== "available") return res.status(400).json({ message: "Donation already claimed" });
 
-        donation.status = "calimed";
+        donation.status = "reserved";
         await donation.save();
 
         res.json({ message: "Donation claimed successfully", donation });
