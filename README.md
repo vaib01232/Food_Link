@@ -28,4 +28,4 @@ Database: MongoDB Atlas
 
 
 Progress so far:
-Backend server running: Express.js server up and running with nodemon, ready for route and API integration.
+Backend server running: Express.js server up and running with nodemon, ready for route and API integration. Built user registration & login with JWT authentication. Added role-based authorization: donors can post, NGOs can view donations. Created APIs to post & fetch donations seamlessly. Created the frontend, yet to link it with backend.
