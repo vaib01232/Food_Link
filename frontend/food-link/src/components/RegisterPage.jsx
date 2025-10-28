@@ -1,7 +1,59 @@
-import React from 'react';
+import React, { useState } from 'react';
+import axios from 'axios';
 import { Heart } from 'lucide-react';
+import { API_ENDPOINTS } from '../config/api';
 
 const RegisterPage = ({ setCurrentPage, userRole, setUserRole }) => {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phoneNumber: '',
+    password: '',
+    confirmPassword: ''
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    if(formData.password !== formData.confirmPassword){
+      setError('Passwords do not match');
+      setLoading(false);
+      return;
+    }
+
+    if(!userRole) {
+      setError('Please select your role');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const res = await axios.post(API_ENDPOINTS.AUTH.REGISTER, {
+        name: formData.name,
+        email: formData.email,
+        phoneNumber: formData.phoneNumber,
+        password: formData.password,
+        role: userRole
+      });
+
+      setError("");
+      alert('Registration successful! Please login to continue.');
+      setCurrentPage('login');
+    } catch (error) {
+      console.log(error);
+      const errorMessage = error.response?.data?.message || 
+                          error.response?.data?.errors?.[0]?.msg || 
+                          'Registration failed';
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-yellow-50 py-12 px-4">
       <div className="max-w-md mx-auto">
@@ -15,15 +67,13 @@ const RegisterPage = ({ setCurrentPage, userRole, setUserRole }) => {
         </div>
 
         <div className="bg-white rounded-2xl shadow-xl p-8">
-          <form onSubmit={(e) => { 
-            e.preventDefault(); 
-            alert('Registration successful!'); 
-            setCurrentPage('landing'); 
-          }}>
+          <form onSubmit={handleRegister}>
             <div className="mb-4">
               <label className="block text-gray-700 font-semibold mb-2">Full Name</label>
               <input 
                 type="text" 
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
                 placeholder="Enter your full name"
                 required
@@ -34,6 +84,8 @@ const RegisterPage = ({ setCurrentPage, userRole, setUserRole }) => {
               <label className="block text-gray-700 font-semibold mb-2">Email</label>
               <input 
                 type="email" 
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
                 placeholder="your@email.com"
                 required
@@ -44,6 +96,8 @@ const RegisterPage = ({ setCurrentPage, userRole, setUserRole }) => {
               <label className="block text-gray-700 font-semibold mb-2">Phone</label>
               <input 
                 type="tel" 
+                value={formData.phoneNumber}
+                onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
                 placeholder="+1 (555) 123-4567"
                 required
@@ -68,6 +122,8 @@ const RegisterPage = ({ setCurrentPage, userRole, setUserRole }) => {
               <label className="block text-gray-700 font-semibold mb-2">Password</label>
               <input 
                 type="password" 
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
                 placeholder="Create a strong password"
                 required
@@ -78,17 +134,24 @@ const RegisterPage = ({ setCurrentPage, userRole, setUserRole }) => {
               <label className="block text-gray-700 font-semibold mb-2">Confirm Password</label>
               <input 
                 type="password" 
+                value={formData.confirmPassword}
+                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
                 placeholder="Re-enter your password"
                 required
               />
             </div>
 
+            {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
+
             <button 
               type="submit"
-              className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition shadow-lg"
+              disabled={loading}
+              className={`w-full ${
+                loading ? "bg-gray-400" : "bg-green-600 hover:bg-green-700"
+              } text-white py-3 rounded-lg font-semibold transition shadow-lg`}
             >
-              Sign Up
+              {loading ? "Signing Up..." : "Sign Up"}
             </button>
           </form>
 
