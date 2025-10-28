@@ -12,8 +12,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
-app.use(express.json());
 
+app.use(cors({ origin: "http://localhost:5173", credentials: true}));
 app.get('/', (req,res) => res.send({ok: true, msg: 'Food_Link API'}));
 app.use('/api/auth', authRoutes);
 app.use('/api/donations', donationRoutes);

@@ -1,7 +1,51 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Heart } from 'lucide-react';
+import axios from 'axios';
+import { API_ENDPOINTS } from '../config/api';
 
 const LoginPage = ({ setCurrentPage, setUserRole }) => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState("");
+  const [error, setError] = useState("");
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      console.log(email,password)
+      const res = await axios.post(API_ENDPOINTS.AUTH.LOGIN, {
+        email,
+        password,
+      });
+
+      const { token, user } = res.data;
+      localStorage.setItem("token", token);
+      const payload = JSON.parse(atob(token.split(".")[1])); 
+      const role = payload.role;
+      localStorage.setItem("user", JSON.stringify(user));
+
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+      setUserRole(role);
+      if(role == "donor"){
+        setCurrentPage("postDonation");
+      }
+      else if(role == "ngo") {
+        setCurrentPage("getDonations");
+      }
+    } catch (error) {
+      console.log(error)
+      const msg = 
+        error.response?.data?.message || "Login failed, please try again.";
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-yellow-50 py-12 px-4">
       <div className="max-w-md mx-auto">
@@ -15,16 +59,13 @@ const LoginPage = ({ setCurrentPage, setUserRole }) => {
         </div>
 
         <div className="bg-white rounded-2xl shadow-xl p-8">
-          <form onSubmit={(e) => { 
-            e.preventDefault(); 
-            const role = prompt('Enter your role (donor/ngo):');
-            setUserRole(role);
-            setCurrentPage(role === 'donor' ? 'postDonation' : 'getDonations');
-          }}>
+          <form onSubmit={handleLogin}>
             <div className="mb-4">
               <label className="block text-gray-700 font-semibold mb-2">Email</label>
               <input 
                 type="email" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
                 placeholder="your@email.com"
                 required
@@ -35,11 +76,15 @@ const LoginPage = ({ setCurrentPage, setUserRole }) => {
               <label className="block text-gray-700 font-semibold mb-2">Password</label>
               <input 
                 type="password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
                 placeholder="Enter your password"
                 required
               />
             </div>
+
+            {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
 
             <div className="mb-6 text-right">
               <a href="#" className="text-green-600 hover:text-green-700 text-sm">
@@ -49,9 +94,10 @@ const LoginPage = ({ setCurrentPage, setUserRole }) => {
 
             <button 
               type="submit"
+              disabled={loading}
               className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition shadow-lg"
             >
-              Login
+              {loading ? "Logging in..." : "Login"}
             </button>
           </form>
 

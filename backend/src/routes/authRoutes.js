@@ -9,7 +9,8 @@ router.post(
     [
         body('name').notEmpty().withMessage('Name is required'),
         body('email').isEmail().withMessage('Valid email is required'),
-        body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
+        body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+        body('role').isIn(['donor', 'ngo']).withMessage('Role must be either donor or ngo')
     ],
     registerUser
 );
