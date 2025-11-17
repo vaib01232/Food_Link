@@ -33,21 +33,65 @@ const upload = multer({ storage, fileFilter, limits: { fileSize: 10 * 1024 * 102
 const router = express.Router();
 
 // Upload single image
-router.post("/image", authMiddleware, authRoles('donor'), upload.single("image"), (req, res) => {
-  if (!req.file) return res.status(400).json({ message: "No file uploaded" });
-  // Return full URL with backend base URL
-  const backendUrl = process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 3000}`;
-  const publicUrl = `${backendUrl}/uploads/${req.file.filename}`;
-  res.status(201).json({ url: publicUrl, filename: req.file.filename });
+router.post("/image", authMiddleware, authRoles('donor'), (req, res) => {
+  upload.single("image")(req, res, (err) => {
+    if (err) {
+      if (err instanceof multer.MulterError) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return res.status(400).json({ message: "File size too large. Maximum 10MB." });
+        }
+        return res.status(400).json({ message: `Upload error: ${err.message}` });
+      }
+      return res.status(400).json({ message: err.message || "Invalid file upload" });
+    }
+    
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+    
+    // Return full URL with backend base URL
+    const backendUrl = process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 3000}`;
+    const publicUrl = `${backendUrl}/uploads/${req.file.filename}`;
+    res.status(201).json({ url: publicUrl, filename: req.file.filename });
+  });
 });
 
 // Upload multiple images
-router.post("/images", authMiddleware, authRoles('donor'), upload.array("images", 5), (req, res) => {
-  if (!req.files || req.files.length === 0) return res.status(400).json({ message: "No files uploaded" });
-  // Return full URLs with backend base URL
-  const backendUrl = process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 3000}`;
-  const urls = req.files.map((f) => `${backendUrl}/uploads/${f.filename}`);
-  res.status(201).json({ urls });
+router.post("/images", authMiddleware, authRoles('donor'), (req, res) => {
+  upload.array("images", 5)(req, res, (err) => {
+    if (err) {
+      if (err instanceof multer.MulterError) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return res.status(400).json({ message: "File size too large. Maximum 10MB per file." });
+        }
+        if (err.code === 'LIMIT_FILE_COUNT') {
+          return res.status(400).json({ message: "Too many files. Maximum 5 files allowed." });
+        }
+        return res.status(400).json({ message: `Upload error: ${err.message}` });
+      }
+      return res.status(400).json({ message: err.message || "Invalid file upload" });
+    }
+    
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ message: "No files uploaded" });
+    }
+    
+    // Return full URLs with backend base URL
+    const backendUrl = process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 3000}`;
+    const urls = req.files.map((f) => `${backendUrl}/uploads/${f.filename}`);
+    res.status(201).json({ urls });
+  });
+});
+
+// Error handling middleware for multer
+router.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    return res.status(400).json({ message: `Upload error: ${err.message}` });
+  }
+  if (err) {
+    return res.status(400).json({ message: err.message || "Upload failed" });
+  }
+  next();
 });
 
 module.exports = router;
