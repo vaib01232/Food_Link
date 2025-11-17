@@ -1,7 +1,17 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Heart, Users, Clock, CheckCircle, Upload } from 'lucide-react';
 
-const LandingPage = ({ setCurrentPage, setUserRole }) => {
+const LandingPage = ({ setUserRole }) => {
+  const navigate = useNavigate();
+  
+  const handleNavigation = (page, role = null) => {
+    if (role && setUserRole) {
+      setUserRole(role);
+    }
+    // Always use React Router navigation, pass role in state
+    navigate(`/${page}`, { state: role ? { role } : undefined });
+  };
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-yellow-50">
       {/* Header */}
@@ -13,13 +23,13 @@ const LandingPage = ({ setCurrentPage, setUserRole }) => {
           </div>
           <div className="space-x-4">
             <button 
-              onClick={() => setCurrentPage('login')}
+              onClick={() => handleNavigation('login')}
               className="text-green-700 hover:text-green-900 font-medium"
             >
               Login
             </button>
             <button 
-              onClick={() => setCurrentPage('register')}
+              onClick={() => handleNavigation('register')}
               className="bg-green-600 text-white px-6 py-2 rounded-full hover:bg-green-700 transition"
             >
               Sign Up
@@ -38,13 +48,13 @@ const LandingPage = ({ setCurrentPage, setUserRole }) => {
         </p>
         <div className="flex justify-center space-x-4 flex-wrap gap-4">
           <button 
-            onClick={() => { setUserRole('donor'); setCurrentPage('register'); }}
+            onClick={() => handleNavigation('register', 'donor')}
             className="bg-green-600 text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-green-700 transition shadow-lg"
           >
             Donate Food Now
           </button>
           <button 
-            onClick={() => { setUserRole('ngo'); setCurrentPage('register'); }}
+            onClick={() => handleNavigation('register', 'ngo')}
             className="bg-yellow-500 text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-yellow-600 transition shadow-lg"
           >
             Claim Food Now
@@ -167,13 +177,13 @@ const LandingPage = ({ setCurrentPage, setUserRole }) => {
           <p className="text-xl text-gray-700 mb-8">Join our community today and help reduce food waste while feeding those in need.</p>
           <div className="flex justify-center space-x-4 flex-wrap gap-4">
             <button 
-              onClick={() => { setUserRole('donor'); setCurrentPage('register'); }}
+              onClick={() => handleNavigation('register', 'donor')}
               className="bg-green-600 text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-green-700 transition shadow-lg"
             >
               Donate Food
             </button>
             <button 
-              onClick={() => { setUserRole('ngo'); setCurrentPage('register'); }}
+              onClick={() => handleNavigation('register', 'ngo')}
               className="bg-yellow-500 text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-yellow-600 transition shadow-lg"
             >
               Claim Food

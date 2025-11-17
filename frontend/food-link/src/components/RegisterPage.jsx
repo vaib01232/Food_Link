@@ -1,9 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { Heart } from 'lucide-react';
 import { API_ENDPOINTS } from '../config/api';
+import toast from 'react-hot-toast';
 
-const RegisterPage = ({ setCurrentPage, userRole, setUserRole }) => {
+const RegisterPage = ({ userRole, setUserRole }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Get role from navigation state if available
+  useEffect(() => {
+    if (location.state?.role && setUserRole) {
+      setUserRole(location.state.role);
+    }
+  }, [location.state, setUserRole]);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -32,7 +43,7 @@ const RegisterPage = ({ setCurrentPage, userRole, setUserRole }) => {
     }
 
     try {
-      const res = await axios.post(API_ENDPOINTS.AUTH.REGISTER, {
+      await axios.post(API_ENDPOINTS.AUTH.REGISTER, {
         name: formData.name,
         email: formData.email,
         phoneNumber: formData.phoneNumber,
@@ -41,14 +52,16 @@ const RegisterPage = ({ setCurrentPage, userRole, setUserRole }) => {
       });
 
       setError("");
-      alert('Registration successful! Please login to continue.');
-      setCurrentPage('login');
+      toast.success('Registration successful! Please login to continue.');
+      // Always use React Router navigation
+      navigate('/login');
     } catch (error) {
       console.log(error);
       const errorMessage = error.response?.data?.message || 
                           error.response?.data?.errors?.[0]?.msg || 
                           'Registration failed';
       setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -158,7 +171,7 @@ const RegisterPage = ({ setCurrentPage, userRole, setUserRole }) => {
           <p className="text-center text-gray-600 mt-6">
             Already have an account?{' '}
             <button 
-              onClick={() => setCurrentPage('login')}
+              onClick={() => navigate('/login')}
               className="text-green-600 font-semibold hover:text-green-700"
             >
               Login
@@ -168,7 +181,7 @@ const RegisterPage = ({ setCurrentPage, userRole, setUserRole }) => {
 
         <div className="text-center mt-6">
           <button 
-            onClick={() => setCurrentPage('landing')}
+            onClick={() => navigate('/')}
             className="text-green-600 hover:text-green-700 font-medium"
           >
             ← Back to Home

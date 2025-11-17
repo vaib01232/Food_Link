@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Heart } from 'lucide-react';
 import axios from 'axios';
 import { API_ENDPOINTS } from '../config/api';
+import toast from 'react-hot-toast';
 
-const LoginPage = ({ setCurrentPage, setUserRole }) => {
+const LoginPage = ({ setUser }) => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState("");
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const handleLogin = async (e) => {
@@ -15,7 +18,6 @@ const LoginPage = ({ setCurrentPage, setUserRole }) => {
     setError("");
 
     try {
-      console.log(email,password)
       const res = await axios.post(API_ENDPOINTS.AUTH.LOGIN, {
         email,
         password,
@@ -23,24 +25,20 @@ const LoginPage = ({ setCurrentPage, setUserRole }) => {
 
       const { token, user } = res.data;
       localStorage.setItem("token", token);
-      const payload = JSON.parse(atob(token.split(".")[1])); 
-      const role = payload.role;
       localStorage.setItem("user", JSON.stringify(user));
 
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
-      setUserRole(role);
-      if(role == "donor"){
-        setCurrentPage("postDonation");
-      }
-      else if(role == "ngo") {
-        setCurrentPage("getDonations");
-      }
+      setUser(user);
+      toast.success(`Welcome back, ${user.name}!`);
+      // Always use React Router navigation
+      navigate("/dashboard");
     } catch (error) {
-      console.log(error)
+      console.log(error);
       const msg = 
         error.response?.data?.message || "Login failed, please try again.";
       setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -104,7 +102,7 @@ const LoginPage = ({ setCurrentPage, setUserRole }) => {
           <p className="text-center text-gray-600 mt-6">
             Don't have an account?{' '}
             <button 
-              onClick={() => setCurrentPage('register')}
+              onClick={() => navigate('/register')}
               className="text-green-600 font-semibold hover:text-green-700"
             >
               Sign Up
@@ -114,7 +112,7 @@ const LoginPage = ({ setCurrentPage, setUserRole }) => {
 
         <div className="text-center mt-6">
           <button 
-            onClick={() => setCurrentPage('landing')}
+            onClick={() => navigate('/')}
             className="text-green-600 hover:text-green-700 font-medium"
           >
             ← Back to Home
