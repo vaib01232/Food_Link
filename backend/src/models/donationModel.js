@@ -15,6 +15,7 @@ const donationSchema = new mongoose.Schema({
     status: { type: String, enum: ['available', 'reserved', 'collected', 'expired', 'cancelled'], default: 'available' },
     reservedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     reservedAt: { type: Date },
+    collectedAt: { type: Date },
     photos: [String]
 }, { timestamps: true });
 

@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Heart, Users, Clock, MapPin, Calendar, Search, Filter } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Heart, Users, Clock, MapPin, Calendar, Search, Filter, Eye } from 'lucide-react';
 import axios from 'axios';
-import { API_ENDPOINTS } from '../config/api';
+import { API_ENDPOINTS, BACKEND_BASE_URL } from '../config/api';
+import toast from 'react-hot-toast';
 
-const GetDonationsPage = ({ setCurrentPage }) => {
+const GetDonationsPage = ({ user }) => {
+  const navigate = useNavigate();
   const [donations, setDonations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -17,6 +20,7 @@ const GetDonationsPage = ({ setCurrentPage }) => {
       } catch (error) {
         console.error("Error fetching donations: ", error);
         setError("Failed to load donations. Please try again.");
+        toast.error("Failed to load donations");
       } finally {
         setLoading(false);
       }
@@ -24,7 +28,16 @@ const GetDonationsPage = ({ setCurrentPage }) => {
     fetchDonations();
   }, []);
 
-  const handleClaimDonation = async (donationId) => {
+  const handleViewDetails = (donationId, e) => {
+    if (e) {
+      e.stopPropagation(); // Prevent card click from firing
+    }
+    console.log('Navigating to donation:', donationId);
+    navigate(`/donation/${donationId}`);
+  };
+
+  const handleClaimDonation = async (donationId, e) => {
+    e.stopPropagation(); // Prevent navigation when claiming
     try{
       const token = localStorage.getItem("token");
       await axios.patch(API_ENDPOINTS.DONATIONS.CLAIM(donationId),{},
@@ -36,9 +49,14 @@ const GetDonationsPage = ({ setCurrentPage }) => {
           d._id === donationId ? { ...d, status: 'reserved'} : d
         )
       );
+      toast.success("Donation claimed successfully! Redirecting to details...");
+      // Navigate to details page after claiming
+      setTimeout(() => {
+        navigate(`/donation/${donationId}`);
+      }, 1000);
     } catch (error) {
       console.error("Error claiming donation:", error);
-      alert(error.response?.data?.message || "Failed to claim donation");
+      toast.error(error.response?.data?.message || "Failed to claim donation");
     }
   };
 
@@ -67,26 +85,7 @@ const GetDonationsPage = ({ setCurrentPage }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-green-50 to-yellow-50">
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
-          <div className="flex items-center space-x-2">
-            <Heart className="w-8 h-8 text-green-600" />
-            <span className="text-2xl font-bold text-green-800">Food Link</span>
-          </div>
-          <button 
-            onClick={() => {
-              localStorage.clear();
-              setCurrentPage('landing')
-            }}
-            className="text-green-700 hover:text-green-900 font-medium"
-          >
-            Logout
-          </button>
-        </div>
-      </header>
-
-      <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+    <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-8">
           <h2 className="text-4xl font-bold text-green-900 mb-2">Available Donations</h2>
           <p className="text-gray-600">Browse and claim food donations from verified donors</p>
@@ -103,7 +102,16 @@ const GetDonationsPage = ({ setCurrentPage }) => {
             </div>
           ) : (
             donations.map((donation) => (
-              <div key={donation._id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition">
+              <div 
+                key={donation._id} 
+                className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition cursor-pointer"
+                onClick={(e) => {
+                  // Only navigate if clicking directly on the card (not on buttons)
+                  if (e.target.tagName !== 'BUTTON' && !e.target.closest('button')) {
+                    handleViewDetails(donation._id);
+                  }
+                }}
+              >
                 <div className="bg-gradient-to-r from-green-400 to-green-500 h-3"></div>
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-4">
@@ -111,7 +119,7 @@ const GetDonationsPage = ({ setCurrentPage }) => {
                       <h3 className="text-xl font-bold text-green-900 mb-1">{donation.title}</h3>
                       <p className="text-gray-600 text-sm flex items-center gap-1">
                         <Users className="w-4 h-4" />
-                        {donation.donor?.name || "Anonymous"}
+                        {donation.donorId?.name || donation.donor?.name || "Anonymous"}
                       </p>
                     </div>
                     {donation.status === 'reserved' && (
@@ -120,6 +128,32 @@ const GetDonationsPage = ({ setCurrentPage }) => {
                       </span>
                     )}
                   </div>
+
+                  {/* Photos */}
+                  {donation.photos && donation.photos.length > 0 && (
+                    <div className="mb-4">
+                      <div className="grid grid-cols-3 gap-2">
+                        {donation.photos.map((photo, idx) => (
+                          <img 
+                            key={idx} 
+                            src={photo.startsWith('http') ? photo : `${BACKEND_BASE_URL}${photo}`} 
+                            alt={`${donation.title} - ${idx + 1}`}
+                            className="w-full h-24 object-cover rounded-lg border border-gray-200"
+                            onError={(e) => {
+                              e.target.src = 'https://via.placeholder.com/150?text=Image+Not+Found';
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Description */}
+                  {donation.description && (
+                    <div className="mb-4">
+                      <p className="text-sm text-gray-600 line-clamp-2">{donation.description}</p>
+                    </div>
+                  )}
 
                   <div className="space-y-3 mb-6">
                     <div className="flex items-center gap-2 text-gray-700">
@@ -159,24 +193,38 @@ const GetDonationsPage = ({ setCurrentPage }) => {
                     </div>
                   </div>
 
-                  <button
-                    onClick={() => handleClaimDonation(donation._id)}
-                    disabled={donation.status === 'reserved'}
-                    className={`w-full py-3 rounded-lg font-semibold transition ${
-                      donation.status === 'reserved'
-                        ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                        : "bg-green-600 text-white hover:bg-green-700 shadow-md"
-                    }`}
-                  >
-                    {donation.status === 'reserved' ? "Already Claimed" : "Claim Now"}
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={(e) => handleViewDetails(donation._id, e)}
+                      className="flex-1 py-3 rounded-lg font-semibold transition bg-gray-100 text-gray-700 hover:bg-gray-200 shadow-md flex items-center justify-center gap-2"
+                    >
+                      <Eye className="w-4 h-4" />
+                      View Details
+                    </button>
+                    {donation.status === 'available' && user && user.role === 'ngo' && (
+                      <button
+                        onClick={(e) => handleClaimDonation(donation._id, e)}
+                        className="flex-1 py-3 rounded-lg font-semibold transition bg-green-600 text-white hover:bg-green-700 shadow-md"
+                      >
+                        Claim Now
+                      </button>
+                    )}
+                  </div>
+                  {donation.status !== 'available' && (
+                    <div className={`w-full py-3 rounded-lg font-semibold text-center ${
+                      donation.status === 'reserved' 
+                        ? "bg-yellow-100 text-yellow-800" 
+                        : "bg-gray-200 text-gray-500"
+                    }`}>
+                      {donation.status === 'reserved' ? "Already Claimed" : "Unavailable"}
+                    </div>
+                  )}
                 </div>
               </div>
             ))
           )}
         </div>
       </div>
-    </div>
   );
 };
 
