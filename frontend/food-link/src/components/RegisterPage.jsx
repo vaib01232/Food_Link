@@ -5,16 +5,17 @@ import { Heart } from 'lucide-react';
 import { API_ENDPOINTS } from '../config/api';
 import toast from 'react-hot-toast';
 
-const RegisterPage = ({ userRole, setUserRole }) => {
+const RegisterPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [userRole, setUserRole] = useState(location.state?.role || '');
   
   // Get role from navigation state if available
   useEffect(() => {
-    if (location.state?.role && setUserRole) {
+    if (location.state?.role) {
       setUserRole(location.state.role);
     }
-  }, [location.state, setUserRole]);
+  }, [location.state]);
   const [formData, setFormData] = useState({
     name: '',
     email: '',

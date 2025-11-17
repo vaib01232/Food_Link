@@ -2,13 +2,10 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Heart, Users, Clock, CheckCircle, Upload } from 'lucide-react';
 
-const LandingPage = ({ setUserRole }) => {
+const LandingPage = () => {
   const navigate = useNavigate();
   
   const handleNavigation = (page, role = null) => {
-    if (role && setUserRole) {
-      setUserRole(role);
-    }
     // Always use React Router navigation, pass role in state
     navigate(`/${page}`, { state: role ? { role } : undefined });
   };

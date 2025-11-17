@@ -13,7 +13,6 @@ import AuthenticatedLayout from './components/AuthenticatedLayout.jsx';
 
 const App = () => {
   const [currentPage, setCurrentPage] = useState('landing');
-  const [userRole, setUserRole] = useState('');
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const location = useLocation();
@@ -27,7 +26,6 @@ const App = () => {
       try {
         const parsedUser = JSON.parse(userData);
         setUser(parsedUser);
-        setUserRole(parsedUser.role);
         
         // Set axios default header
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
@@ -104,18 +102,13 @@ const App = () => {
         <Route 
           path="/" 
           element={
-            <LandingPage 
-              setUserRole={setUserRole} 
-            />
+            <LandingPage />
           } 
         />
         <Route 
           path="/register" 
           element={
-            <RegisterPage 
-              userRole={userRole}
-              setUserRole={setUserRole}
-            />
+            <RegisterPage />
           } 
         />
         <Route 

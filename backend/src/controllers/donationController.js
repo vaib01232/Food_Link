@@ -226,13 +226,19 @@ const cancelClaim = async (req, res) => {
             return res.status(404).json({ message: "Donation not found" });
         }
         
-        // Check if the donation was reserved by this NGO
-        if (donation.reservedBy && donation.reservedBy.toString() !== req.user.id) {
-            return res.status(403).json({ message: 'You can only cancel claims for donations you have claimed' });
-        }
-        
+        // Check status first
         if (donation.status !== 'reserved') {
             return res.status(400).json({ message: 'Only reserved donations can have their claim cancelled' });
+        }
+        
+        // Check if the donation has a reservedBy (should always be true for reserved status)
+        if (!donation.reservedBy) {
+            return res.status(400).json({ message: 'This donation is not claimed by anyone' });
+        }
+        
+        // Check if the donation was reserved by this NGO
+        if (donation.reservedBy.toString() !== req.user.id) {
+            return res.status(403).json({ message: 'You can only cancel claims for donations you have claimed' });
         }
 
         donation.status = 'available';
