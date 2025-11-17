@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart, Users, Clock, MapPin, Calendar, Search, Filter, Eye } from 'lucide-react';
+import { Heart, Users, Clock, MapPin, Calendar, Eye } from 'lucide-react';
 import axios from 'axios';
 import { API_ENDPOINTS, BACKEND_BASE_URL } from '../config/api';
 import toast from 'react-hot-toast';
@@ -15,7 +15,9 @@ const GetDonationsPage = ({ user }) => {
     const fetchDonations = async () => {
       try{
         const res = await axios.get(API_ENDPOINTS.DONATIONS.BASE);
-        setDonations(res.data);
+        // Handle both old format (array) and new format (object with data)
+        const donationsData = res.data.data || res.data;
+        setDonations(Array.isArray(donationsData) ? donationsData : []);
         setError("");
       } catch (error) {
         console.error("Error fetching donations: ", error);
@@ -26,6 +28,9 @@ const GetDonationsPage = ({ user }) => {
       }
     };
     fetchDonations();
+  }, []);
+  useEffect(() => {
+    refetchDonations();
   }, []);
 
   const handleViewDetails = (donationId, e) => {
@@ -74,7 +79,7 @@ const GetDonationsPage = ({ user }) => {
         <div className='text-center'>
           <p className='text-red-500 font-semibold text-lg mb-4'>{error}</p>
           <button 
-            onClick={() => window.location.reload()}
+            onClick={refetchDonations}
             className='bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700'
           >
             Retry

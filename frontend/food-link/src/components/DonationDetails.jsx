@@ -51,7 +51,8 @@ const DonationDetails = ({ user }) => {
       
       const res = await axios.get(API_ENDPOINTS.DONATIONS.BY_ID(id), config);
       console.log('Donation fetched successfully:', res.data);
-      setDonation(res.data);
+      const donationData = res.data.data || res.data;
+      setDonation(donationData);
     } catch (err) {
       console.error('Error fetching donation:', err);
       console.error('Error response:', err.response);

@@ -29,7 +29,7 @@ const Dashboard = ({ user }) => {
           headers: { Authorization: `Bearer ${token}` }
         });
         
-        const allDonations = response.data || [];
+        const allDonations = response.data.data || response.data || [];
         
         setStats({
           totalDonations: allDonations.length,
@@ -43,16 +43,18 @@ const Dashboard = ({ user }) => {
           axios.get(API_ENDPOINTS.DONATIONS.BASE),
           axios.get(API_ENDPOINTS.DONATIONS.CLAIMED, {
             headers: { Authorization: `Bearer ${token}` }
-          }).catch(() => ({ data: [] }))
+          }).catch(() => ({ data: { data: [] } }))
         ]);
         
-        const availableDonations = availableResponse.data.filter(d => d.status === 'available');
-        const claimedDonations = claimedResponse.data || [];
+        const availableData = availableResponse.data.data || availableResponse.data || [];
+        const claimedData = claimedResponse.data.data || claimedResponse.data || [];
+        
+        const availableDonations = availableData.filter(d => d.status === 'available');
         
         setStats({
           totalDonations: 0,
           activeDonations: 0,
-          claimedDonations: claimedDonations.length,
+          claimedDonations: claimedData.length,
           availableNearby: availableDonations.length
         });
       }
