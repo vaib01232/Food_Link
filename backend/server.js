@@ -1,10 +1,17 @@
 require('dotenv').config();
 
+// Validate environment variables
+const validateEnv = require('./src/utils/validateEnv');
+validateEnv();
+
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const mongoose = require('mongoose');
 const cron = require('node-cron');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const mongoSanitize = require('express-mongo-sanitize');
 const authRoutes = require('./src/routes/authRoutes');
 const donationRoutes = require('./src/routes/donationRoutes');
 const uploadRoutes = require('./src/routes/uploadRoutes');
@@ -14,19 +21,49 @@ const path = require('path');
 
 const app = express();
 
+// Security middleware
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" } // Allow images to load
+}));
+
+// Rate limiting for authentication routes
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // 5 requests per window
+  message: 'Too many authentication attempts, please try again later',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// General API rate limiting
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // 100 requests per window
+  message: 'Too many requests, please try again later',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // CORS configuration
 app.use(cors({ 
   origin: process.env.FRONTEND_URL || "http://localhost:5173", 
   credentials: true 
 }));
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Sanitize data to prevent NoSQL injection
+app.use(mongoSanitize());
+
 app.use(morgan('dev'));
 
 app.get('/', (req,res) => res.send({ok: true, msg: 'Food_Link API'}));
-app.use('/api/auth', authRoutes);
-app.use('/api/donations', donationRoutes);
-app.use('/api/uploads', uploadRoutes);
-app.use('/api/admin', adminRoutes);
+
+// Apply rate limiting to auth routes
+app.use('/api/auth', authLimiter, authRoutes);
+app.use('/api/donations', apiLimiter, donationRoutes);
+app.use('/api/uploads', apiLimiter, uploadRoutes);
+app.use('/api/admin', apiLimiter, adminRoutes);
 
 // Serve uploads statically
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
@@ -94,6 +131,42 @@ function initializeCleanupService() {
 
   console.log('[Cleanup Service] Initialized successfully');
 }
+
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error('[Error]', err.stack);
+  
+  // Handle specific error types
+  if (err.name === 'ValidationError') {
+    return res.status(400).json({
+      success: false,
+      message: 'Validation error',
+      errors: Object.values(err.errors).map(e => e.message)
+    });
+  }
+  
+  if (err.name === 'CastError') {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid ID format'
+    });
+  }
+  
+  if (err.code === 11000) {
+    return res.status(400).json({
+      success: false,
+      message: 'Duplicate entry',
+      field: Object.keys(err.keyPattern)[0]
+    });
+  }
+  
+  // Default error response
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || 'Internal server error',
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+  });
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

@@ -19,4 +19,11 @@ const donationSchema = new mongoose.Schema({
     photos: [String]
 }, { timestamps: true });
 
+// Indexes for better query performance
+donationSchema.index({ status: 1, expireDateTime: 1 });
+donationSchema.index({ donorId: 1, createdAt: -1 });
+donationSchema.index({ reservedBy: 1 });
+donationSchema.index({ pickupDateTime: 1 });
+donationSchema.index({ 'pickupGeo.lat': 1, 'pickupGeo.lng': 1 });
+
 module.exports = mongoose.model('Donation', donationSchema);
