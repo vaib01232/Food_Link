@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { Bell, Trash2, CheckCircle, XCircle } from "lucide-react";
+import { Bell, AlertCircle, Trash2, Clock, Tag, Building2 } from "lucide-react";
 import { API_ENDPOINTS } from "../config/api";
 
 const NotificationsPage = () => {
@@ -87,11 +87,13 @@ const NotificationsPage = () => {
   const getNotificationIcon = (type) => {
     switch (type) {
       case "donation_claimed":
-        return "🎉";
+        return <Bell className="w-5 h-5 text-green-600" strokeWidth={1.5} />;
       case "donation_deleted":
-        return "🗑️";
+        return <Trash2 className="w-5 h-5 text-red-600" strokeWidth={1.5} />;
+      case "donation_unclaimed":
+        return <AlertCircle className="w-5 h-5 text-yellow-600" strokeWidth={1.5} />;
       default:
-        return "📢";
+        return <AlertCircle className="w-5 h-5 text-blue-600" strokeWidth={1.5} />;
     }
   };
 
@@ -112,13 +114,13 @@ const NotificationsPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-yellow-50 to-green-50 pt-20 px-4">
-        <div className="max-w-4xl mx-auto p-8">
-          <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-green-200 rounded w-1/4"></div>
-            <div className="h-20 bg-white rounded-xl"></div>
-            <div className="h-20 bg-white rounded-xl"></div>
-            <div className="h-20 bg-white rounded-xl"></div>
+      <div className="min-h-screen bg-gradient-to-b from-green-50 to-yellow-50 pt-20 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="animate-pulse space-y-3">
+            <div className="h-6 bg-gray-200 rounded w-1/4 mb-8"></div>
+            <div className="h-16 bg-white rounded"></div>
+            <div className="h-16 bg-white rounded"></div>
+            <div className="h-16 bg-white rounded"></div>
           </div>
         </div>
       </div>
@@ -126,24 +128,22 @@ const NotificationsPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-yellow-50 to-green-50 pt-20 px-4 pb-12">
+    <div className="min-h-screen bg-gradient-to-b from-green-50 to-yellow-50 pt-20 px-4 pb-12">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-green-600 to-green-700 bg-clip-text text-transparent">
-              Notifications
-            </h1>
+            <h1 className="text-3xl font-bold text-gray-900">Notifications</h1>
             {unreadCount > 0 && (
-              <p className="text-gray-600 mt-2">
-                You have {unreadCount} unread notification{unreadCount !== 1 ? 's' : ''}
+              <p className="text-sm text-gray-600 mt-1">
+                {unreadCount} unread
               </p>
             )}
           </div>
           {unreadCount > 0 && (
             <button
               onClick={markAllAsRead}
-              className="px-4 py-2 text-sm font-medium text-green-700 bg-green-100 rounded-lg hover:bg-green-200 transition-colors"
+              className="text-sm font-medium text-green-700 hover:text-green-800 transition-colors"
             >
               Mark all as read
             </button>
@@ -152,61 +152,65 @@ const NotificationsPage = () => {
 
         {/* Notifications List */}
         {notifications.length === 0 ? (
-          <div className="bg-white rounded-3xl p-12 text-center shadow-lg">
-            <div className="text-6xl mb-4">🔔</div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">
-              No notifications yet
+          <div className="bg-white rounded-lg p-12 text-center border border-gray-200">
+            <Bell className="w-12 h-12 text-gray-400 mx-auto mb-3" strokeWidth={1.5} />
+            <h2 className="text-lg font-semibold text-gray-900 mb-1">
+              No notifications
             </h2>
-            <p className="text-gray-600">
-              When you receive notifications, they'll appear here.
+            <p className="text-sm text-gray-600">
+              You're all caught up! Notifications will appear here.
             </p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="bg-white rounded-lg border border-gray-200 divide-y divide-gray-100">
             {notifications.map((notification) => (
               <div
                 key={notification._id}
                 onClick={() => handleNotificationClick(notification)}
                 className={`
-                  bg-white rounded-xl p-6 shadow-md cursor-pointer 
-                  transition-all duration-300 hover:scale-[1.01] hover:shadow-lg
-                  ${!notification.isRead ? 'border-l-4 border-green-600' : 'border-l-4 border-transparent'}
+                  p-5 transition-colors cursor-pointer hover:bg-gray-50
+                  ${!notification.isRead ? 'bg-green-50/30' : ''}
                 `}
               >
-                <div className="flex items-start gap-4">
+                <div className="flex items-start gap-3">
                   {/* Icon */}
-                  <div className="text-3xl flex-shrink-0">
+                  <div className="flex-shrink-0 mt-0.5">
                     {getNotificationIcon(notification.type)}
                   </div>
 
                   {/* Content */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-4">
-                      <p className={`text-gray-800 ${!notification.isRead ? 'font-semibold' : 'font-normal'}`}>
-                        {notification.message}
-                      </p>
-                      {!notification.isRead && (
-                        <span className="flex-shrink-0 w-2 h-2 bg-green-600 rounded-full mt-2"></span>
-                      )}
-                    </div>
+                    <p className={`text-sm leading-relaxed ${!notification.isRead ? 'font-medium text-gray-900' : 'text-gray-700'}`}>
+                      {notification.message}
+                    </p>
                     
                     {/* Metadata */}
-                    <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-gray-500">
-                      <span className="flex items-center gap-1">
-                        🕒 {formatDate(notification.createdAt)}
+                    <div className="flex flex-wrap items-center gap-3 mt-2">
+                      <span className="flex items-center gap-1 text-xs text-gray-500">
+                        <Clock className="w-3 h-3" strokeWidth={2} />
+                        {formatDate(notification.createdAt)}
                       </span>
                       {notification.donationId && (
-                        <span className="flex items-center gap-1">
-                          📦 {notification.donationId}
+                        <span className="flex items-center gap-1 text-xs text-gray-500">
+                          <Tag className="w-3 h-3" strokeWidth={2} />
+                          {notification.donationId}
                         </span>
                       )}
                       {notification.metadata?.ngoName && (
-                        <span className="flex items-center gap-1">
-                          🏢 {notification.metadata.ngoName}
+                        <span className="flex items-center gap-1 text-xs text-gray-500">
+                          <Building2 className="w-3 h-3" strokeWidth={2} />
+                          {notification.metadata.ngoName}
                         </span>
                       )}
                     </div>
                   </div>
+
+                  {/* Unread Indicator */}
+                  {!notification.isRead && (
+                    <div className="flex-shrink-0">
+                      <div className="w-2 h-2 bg-green-600 rounded-full"></div>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

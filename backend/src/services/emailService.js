@@ -203,7 +203,12 @@ const sendDonationNotificationEmail = async (email, name, donationDetails) => {
 const sendDonationClaimEmail = async (ngoEmail, ngoName, donationDetails) => {
   try {
     const transporter = createTransporter();
-    const { donationId, donationTitle, donorName, donorEmail, donorPhone, donorAddress, pickupDateTime } = donationDetails;
+    const { donationId, donationTitle, donorName, donorEmail, donorPhone, donorAddress, pickupDateTime, pickupGeo } = donationDetails;
+    
+    // Create Google Maps link
+    const googleMapsLink = pickupGeo && pickupGeo.lat && pickupGeo.lng 
+      ? `https://www.google.com/maps?q=${pickupGeo.lat},${pickupGeo.lng}`
+      : null;
     
     const mailOptions = {
       from: `"Food Link" <${process.env.EMAIL_FROM || 'noreply@foodlink.com'}>`,
@@ -224,13 +229,15 @@ const sendDonationClaimEmail = async (ngoEmail, ngoName, donationDetails) => {
             .label { font-weight: bold; color: #059669; margin-bottom: 5px; }
             .value { color: #1f2937; }
             .highlight { background: #d1fae5; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: center; }
+            .map-button { display: inline-block; padding: 12px 24px; background: #10b981; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; margin: 10px 0; }
+            .map-button:hover { background: #059669; }
             .footer { text-align: center; margin-top: 20px; color: #6b7280; font-size: 12px; }
           </style>
         </head>
         <body>
           <div class="container">
             <div class="header">
-              <h1>🎉 Donation Claimed Successfully</h1>
+              <h1>Donation Claimed Successfully</h1>
             </div>
             <div class="content">
               <p>Hi ${ngoName},</p>
@@ -261,10 +268,14 @@ const sendDonationClaimEmail = async (ngoEmail, ngoName, donationDetails) => {
                   <div class="value">${donorPhone}</div>
                 </div>
                 
+                ${googleMapsLink ? `
                 <div class="detail-row">
-                  <div class="label">Pickup Address:</div>
-                  <div class="value">${donorAddress}</div>
+                  <div class="label">Location:</div>
+                  <div class="value">
+                    <a href="${googleMapsLink}" target="_blank" class="map-button">View on Google Maps</a>
+                  </div>
                 </div>
+                ` : ''}
                 
                 <div class="detail-row">
                   <div class="label">Pickup Date & Time:</div>
@@ -307,6 +318,7 @@ const sendDonationClaimEmail = async (ngoEmail, ngoName, donationDetails) => {
         - Phone: ${donorPhone}
         - Address: ${donorAddress}
         
+        ${googleMapsLink ? `Location: ${googleMapsLink}\n        ` : ''}
         Pickup Date & Time: ${new Date(pickupDateTime).toLocaleString()}
         
         Next Steps:

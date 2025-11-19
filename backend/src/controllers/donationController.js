@@ -186,7 +186,8 @@ const claimDonation = async (req, res) => {
                     donorEmail: donation.donorId.email,
                     donorPhone: donation.donorId.phoneNumber || 'Not provided',
                     donorAddress: donation.donorId.address || donation.pickupAddress,
-                    pickupDateTime: donation.pickupDateTime
+                    pickupDateTime: donation.pickupDateTime,
+                    pickupGeo: donation.pickupGeo
                 }
             );
         } catch (emailErr) {
@@ -388,6 +389,21 @@ const cancelClaim = async (req, res) => {
         await donation.save();
 
         await donation.populate("donorId", "name email phoneNumber address");
+
+        // Create notification for donor about unclaim
+        try {
+            await Notification.create({
+                userId: donation.donorId._id,
+                message: `An NGO has unclaimed your donation (${donation.donationId}). It is now available for other NGOs.`,
+                type: 'donation_unclaimed',
+                donationId: donation.donationId,
+                metadata: {
+                    donationTitle: donation.title
+                }
+            });
+        } catch (notifErr) {
+            console.error('Failed to create unclaim notification for donor:', notifErr);
+        }
 
         res.json({ 
             success: true,
