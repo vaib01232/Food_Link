@@ -14,7 +14,9 @@ import {
   ArrowLeft
 } from "lucide-react";
 import { API_ENDPOINTS, BACKEND_BASE_URL } from '../config/api';
+import { GOOGLE_MAPS_API_KEY } from '../config/maps';
 import toast from 'react-hot-toast';
+import LocationPicker from './LocationPicker';
 
 const PostDonationPage = () => {
   const navigate = useNavigate();
@@ -46,6 +48,14 @@ const PostDonationPage = () => {
     setFormData({ 
       ...formData, 
       [e.target.name]: e.target.value 
+    });
+  };
+
+  const handleLocationSelect = (lat, lng) => {
+    setFormData({
+      ...formData,
+      lat: lat.toString(),
+      lng: lng.toString()
     });
   };
 
@@ -182,29 +192,31 @@ const PostDonationPage = () => {
     <>
       <div className="max-w-4xl mx-auto py-8 px-4">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center mb-4">
-            <Heart className="w-8 h-8 text-red-500 mr-2" />
-            <h1 className="text-3xl font-bold text-gray-900">Post a Donation</h1>
+        <div className="text-center mb-10 animate-fadeInUp">
+          <div className="flex items-center justify-center mb-6 space-x-3">
+            <div className="bg-gradient-to-br from-red-500 to-red-600 p-3 rounded-2xl shadow-lg">
+              <Heart className="w-10 h-10 text-white" />
+            </div>
+            <h1 className="text-5xl font-bold bg-gradient-to-r from-green-700 to-green-600 bg-clip-text text-transparent">Post a Donation</h1>
           </div>
-          <p className="text-gray-600 text-lg">Share your surplus food with NGOs in need</p>
+          <p className="text-gray-600 text-lg font-medium">Share your surplus food with NGOs in need</p>
         </div>
 
         {/* Progress Steps */}
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center mb-10">
           <div className="flex items-center space-x-4">
             {[1, 2, 3].map((step) => (
               <div key={step} className="flex items-center">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold ${
+                <div className={`w-14 h-14 rounded-full flex items-center justify-center text-sm font-bold shadow-lg transition-all duration-300 ${
                   currentStep >= step 
-                    ? 'bg-green-600 text-white' 
+                    ? 'bg-gradient-to-br from-green-600 to-green-700 text-white scale-110' 
                     : 'bg-gray-200 text-gray-500'
                 }`}>
-                  {currentStep > step ? <CheckCircle className="w-5 h-5" /> : step}
+                  {currentStep > step ? <CheckCircle className="w-6 h-6" /> : step}
                 </div>
                 {step < 3 && (
-                  <div className={`w-16 h-1 mx-2 ${
-                    currentStep > step ? 'bg-green-600' : 'bg-gray-200'
+                  <div className={`w-20 h-2 mx-3 rounded-full transition-all duration-300 ${
+                    currentStep > step ? 'bg-gradient-to-r from-green-600 to-green-700' : 'bg-gray-200'
                   }`} />
                 )}
               </div>
@@ -213,15 +225,15 @@ const PostDonationPage = () => {
         </div>
 
         {/* Main Card */}
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+        <div className="bg-white rounded-3xl shadow-2xl border-2 border-gray-100 overflow-hidden">
           {/* Card Header */}
-          <div className="bg-gradient-to-r from-green-50 to-emerald-50 px-8 py-6 border-b border-gray-100">
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+          <div className="bg-gradient-to-r from-green-50 to-emerald-50 px-8 py-6 border-b-2 border-gray-100">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
               {currentStep === 1 && "Food Details"}
               {currentStep === 2 && "Pickup Information"}
               {currentStep === 3 && "Review & Submit"}
             </h2>
-            <p className="text-gray-600">
+            <p className="text-gray-600 font-medium">
               {currentStep === 1 && "Tell us about the food you're donating"}
               {currentStep === 2 && "When and where can NGOs pick up the food?"}
               {currentStep === 3 && "Review your donation details before posting"}
@@ -235,35 +247,35 @@ const PostDonationPage = () => {
               {currentStep === 1 && (
                 <div className="space-y-6">
                   <div className="space-y-2">
-                    <label className="block text-sm font-semibold text-gray-700">Food Title *</label>
+                    <label className="block text-sm font-bold text-gray-700">Food Title *</label>
                     <div className="relative">
-                      <Package className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                      <Package className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
                       <input
                         type="text"
                         name="title"
                         placeholder="e.g., Fresh Vegetables, Cooked Meals, Baked Goods"
                         value={formData.title}
                         onChange={handleChange}
-                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
+                        className="w-full pl-10 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-4 focus:ring-green-100 outline-none transition-all duration-300"
                         required
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <label className="block text-sm font-semibold text-gray-700">Description</label>
+                    <label className="block text-sm font-bold text-gray-700">Description</label>
                     <textarea
                       name="description"
                       placeholder="Describe the food items, ingredients, preparation method, etc."
                       value={formData.description}
                       onChange={handleChange}
                       rows={4}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition resize-none"
+                      className="w-full px-4 py-3.5 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-4 focus:ring-green-100 outline-none transition-all duration-300 resize-none"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <label className="block text-sm font-semibold text-gray-700">Quantity / Number of Servings *</label>
+                    <label className="block text-sm font-bold text-gray-700">Quantity / Number of Servings *</label>
                     <input
                       type="number"
                       name="quantity"
@@ -271,15 +283,15 @@ const PostDonationPage = () => {
                       value={formData.quantity}
                       onChange={handleChange}
                       min="1"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
+                      className="w-full px-4 py-3.5 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-4 focus:ring-green-100 outline-none transition-all duration-300"
                       required
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <label className="block text-sm font-semibold text-gray-700">Upload Photos (Optional)</label>
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-green-400 transition-colors cursor-pointer">
-                      <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                    <label className="block text-sm font-bold text-gray-700">Upload Photos (Optional)</label>
+                    <div className="border-2 border-dashed border-gray-300 rounded-2xl p-8 text-center hover:border-green-400 hover:bg-green-50/50 transition-all duration-300 cursor-pointer">
+                      <Upload className="w-10 h-10 text-gray-400 mx-auto mb-3" />
                       <input
                         id="photos"
                         type="file"
@@ -290,14 +302,14 @@ const PostDonationPage = () => {
                         className="hidden"
                       />
                       <label htmlFor="photos" className="cursor-pointer">
-                        <span className="text-sm text-gray-500">Click to upload or drag and drop</span>
+                        <span className="text-sm text-gray-500 font-medium">Click to upload or drag and drop</span>
                         <p className="text-xs text-gray-400 mt-1">PNG, JPG up to 10MB</p>
                       </label>
                     </div>
                     {previewUrls.length > 0 && (
-                      <div className="grid grid-cols-3 gap-3 mt-3">
+                      <div className="grid grid-cols-3 gap-4 mt-4">
                         {previewUrls.map((src, idx) => (
-                          <div key={idx} className="relative w-full h-24 rounded overflow-hidden border">
+                          <div key={idx} className="relative w-full h-28 rounded-xl overflow-hidden border-2 border-gray-200 shadow-md">
                             <img src={src} alt="preview" className="w-full h-full object-cover" />
                           </div>
                         ))}
@@ -308,12 +320,12 @@ const PostDonationPage = () => {
                         type="button"
                         onClick={uploadImages}
                         disabled={uploading || !selectedFiles.length}
-                        className={`mt-2 px-4 py-2 rounded-lg text-white ${uploading || !selectedFiles.length ? 'bg-gray-400' : 'bg-green-600 hover:bg-green-700'} transition`}
+                        className={`mt-2 px-6 py-3 rounded-xl text-white font-bold transition-all duration-300 ${uploading || !selectedFiles.length ? 'bg-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-green-600 to-green-700 hover:shadow-lg hover:scale-105'}`}
                       >
                         {uploading ? 'Uploading...' : uploadedUrls.length ? 'Re-upload' : 'Upload Images'}
                       </button>
                       {uploadedUrls.length > 0 && (
-                        <span className="text-sm text-green-700">{uploadedUrls.length} image(s) uploaded</span>
+                        <span className="text-sm text-green-700 font-bold">✓ {uploadedUrls.length} image(s) uploaded</span>
                       )}
                     </div>
                   </div>
@@ -324,49 +336,62 @@ const PostDonationPage = () => {
               {currentStep === 2 && (
                 <div className="space-y-6">
                   <div className="space-y-2">
-                    <label className="block text-sm font-semibold text-gray-700">Pickup Address *</label>
+                    <label className="block text-sm font-bold text-gray-700">Pickup Address *</label>
                     <div className="relative">
-                      <MapPin className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                      <MapPin className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
                       <textarea
                         name="pickupAddress"
                         placeholder="Enter full address including street, city, state, and zip code"
                         value={formData.pickupAddress}
                         onChange={handleChange}
                         rows={3}
-                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition resize-none"
+                        className="w-full pl-10 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-4 focus:ring-green-100 outline-none transition-all duration-300 resize-none"
                         required
                       />
                     </div>
                   </div>
 
+                  {/* Location Picker */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-bold text-gray-700">
+                      Pin Pickup Location on Map *
+                    </label>
+                    <LocationPicker
+                      onLocationSelect={handleLocationSelect}
+                      initialLat={formData.lat}
+                      initialLng={formData.lng}
+                      apiKey={GOOGLE_MAPS_API_KEY}
+                    />
+                  </div>
+
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <label className="block text-sm font-semibold text-gray-700">Pickup Date *</label>
+                      <label className="block text-sm font-bold text-gray-700">Pickup Date *</label>
                       <div className="relative">
-                        <Calendar className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                        <Calendar className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
                         <input
                           type="date"
                           name="pickupDate"
                           value={formData.pickupDate}
                           onChange={handleChange}
                           min={pickupMinDate}
-                          className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
+                          className="w-full pl-10 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-4 focus:ring-green-100 outline-none transition-all duration-300"
                           required
                         />
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <label className="block text-sm font-semibold text-gray-700">Pickup Time *</label>
+                      <label className="block text-sm font-bold text-gray-700">Pickup Time *</label>
                       <div className="relative">
-                        <Clock className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                        <Clock className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
                         <input
                           type="time"
                           name="pickupTime"
                           value={formData.pickupTime}
                           onChange={handleChange}
                           min={pickupMinTime}
-                          className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
+                          className="w-full pl-10 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-4 focus:ring-green-100 outline-none transition-all duration-300"
                           required
                         />
                       </div>
@@ -375,43 +400,43 @@ const PostDonationPage = () => {
 
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <label className="block text-sm font-semibold text-gray-700">Expiry Date *</label>
+                      <label className="block text-sm font-bold text-gray-700">Expiry Date *</label>
                       <div className="relative">
-                        <AlertCircle className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                        <AlertCircle className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
                         <input
                           type="date"
                           name="expiryDate"
                           value={formData.expiryDate}
                           onChange={handleChange}
                           min={expiryMinDate}
-                          className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
+                          className="w-full pl-10 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-4 focus:ring-green-100 outline-none transition-all duration-300"
                           required
                         />
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <label className="block text-sm font-semibold text-gray-700">Expiry Time *</label>
+                      <label className="block text-sm font-bold text-gray-700">Expiry Time *</label>
                       <div className="relative">
-                        <Clock className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                        <Clock className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
                         <input
                           type="time"
                           name="expiryTime"
                           value={formData.expiryTime}
                           onChange={handleChange}
                           min={expiryMinTime}
-                          className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
+                          className="w-full pl-10 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-4 focus:ring-green-100 outline-none transition-all duration-300"
                           required
                         />
                       </div>
                     </div>
                   </div>
 
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex gap-3">
+                  <div className="bg-yellow-50 border-l-4 border-yellow-400 rounded-xl p-5 flex gap-3">
                     <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
                     <div className="text-sm">
-                      <p className="font-medium text-yellow-800 mb-1">Important Note</p>
-                      <p className="text-yellow-700">
+                      <p className="font-bold text-yellow-800 mb-1">Important Note</p>
+                      <p className="text-yellow-700 font-medium">
                         Please ensure the food is safe for consumption and the expiry information is accurate.
                       </p>
                     </div>
@@ -468,18 +493,18 @@ const PostDonationPage = () => {
               )}
 
               {/* Navigation Buttons */}
-              <div className="flex justify-between mt-8">
+              <div className="flex justify-between mt-10">
                 <button
                   type="button"
                   onClick={prevStep}
                   disabled={currentStep === 1}
-                  className={`flex items-center px-6 py-3 rounded-lg font-semibold transition ${
+                  className={`flex items-center px-8 py-4 rounded-xl font-bold transition-all duration-300 text-lg ${
                     currentStep === 1
                       ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      : 'bg-gray-100 border-2 border-gray-200 text-gray-700 hover:bg-gray-200 hover:shadow-lg hover:scale-105'
                   }`}
                 >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  <ArrowLeft className="w-5 h-5 mr-2" />
                   Previous
                 </button>
 
@@ -487,25 +512,25 @@ const PostDonationPage = () => {
                   <button
                     type="button"
                     onClick={nextStep}
-                    className="flex items-center px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition"
+                    className="flex items-center px-8 py-4 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl font-bold hover:shadow-2xl hover:scale-105 transition-all duration-300 text-lg"
                   >
                     Next
-                    <ArrowRight className="w-4 h-4 ml-2" />
+                    <ArrowRight className="w-5 h-5 ml-2" />
                   </button>
                 ) : (
                   <button
                     type="button"
                     disabled={loading}
-                    className={`flex items-center px-6 py-3 rounded-lg font-semibold transition ${
+                    className={`flex items-center px-8 py-4 rounded-xl font-bold transition-all duration-300 text-lg ${
                       loading 
                         ? 'bg-gray-400 text-white cursor-not-allowed' 
-                        : 'bg-green-600 text-white hover:bg-green-700'
+                        : 'bg-gradient-to-r from-green-600 to-green-700 text-white hover:shadow-2xl hover:scale-105'
                     }`}
                     onClick={() => setShowConfirm(true)}
                   >
                     {loading ? (
                       <>
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
                         Posting...
                       </>
                     ) : (

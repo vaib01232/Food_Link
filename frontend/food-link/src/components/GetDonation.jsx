@@ -84,25 +84,25 @@ const GetDonationsPage = ({ user }) => {
 
   return (
     <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-8">
-          <h2 className="text-4xl font-bold text-green-900 mb-2">Available Donations</h2>
-          <p className="text-gray-600">Browse and claim food donations from verified donors</p>
+        <div className="text-center mb-10 animate-fadeInUp">
+          <h2 className="text-5xl font-bold text-green-900 mb-3">Available Donations</h2>
+          <p className="text-gray-600 text-lg font-medium">Browse and claim food donations from verified donors</p>
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {donations.length === 0 ? (
-            <div className="col-span-full text-center py-16">
-              <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Heart className="w-10 h-10 text-gray-400" />
+            <div className="col-span-full text-center py-20">
+              <div className="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                <Heart className="w-12 h-12 text-gray-400" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-700 mb-2">No Available Donations</h3>
-              <p className="text-gray-500">Check back later for new food donations in your area.</p>
+              <h3 className="text-3xl font-bold text-gray-700 mb-3">No Available Donations</h3>
+              <p className="text-gray-500 text-lg">Check back later for new food donations in your area.</p>
             </div>
           ) : (
             donations.map((donation) => (
               <div 
                 key={donation._id} 
-                className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition cursor-pointer"
+                className="bg-white rounded-3xl shadow-2xl overflow-hidden hover:shadow-[0_20px_50px_rgba(0,0,0,0.15)] hover:scale-[1.02] transition-all duration-300 cursor-pointer border-2 border-gray-100"
                 onClick={(e) => {
                   // Only navigate if clicking directly on the card (not on buttons)
                   if (e.target.tagName !== 'BUTTON' && !e.target.closest('button')) {
@@ -155,64 +155,64 @@ const GetDonationsPage = ({ user }) => {
 
                   <div className="space-y-3 mb-6">
                     <div className="flex items-center gap-2 text-gray-700">
-                      <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <div className="w-10 h-10 bg-gradient-to-br from-green-100 to-green-200 rounded-2xl flex items-center justify-center flex-shrink-0">
                         <span className="text-green-600 font-bold text-sm">Q</span>
                       </div>
-                      <span className="text-sm">
-                        <span className="font-semibold">Quantity:</span> {donation.quantity}
+                      <span className="text-sm font-medium">
+                        <span className="font-bold">Quantity:</span> {donation.quantity}
                       </span>
                     </div>
 
                     <div className="flex items-center gap-2 text-gray-700">
-                      <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <MapPin className="w-4 h-4 text-yellow-600" />
+                      <div className="w-10 h-10 bg-gradient-to-br from-yellow-100 to-yellow-200 rounded-2xl flex items-center justify-center flex-shrink-0">
+                        <MapPin className="w-5 h-5 text-yellow-600" />
                       </div>
-                      <span className="text-sm">{donation.pickupAddress}</span>
+                      <span className="text-sm font-medium">{donation.pickupAddress}</span>
                     </div>
 
                     <div className="flex items-center gap-2 text-gray-700">
-                      <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <Calendar className="w-4 h-4 text-blue-600" />
+                      <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl flex items-center justify-center flex-shrink-0">
+                        <Calendar className="w-5 h-5 text-blue-600" />
                       </div>
-                      <span className="text-sm">
-                        <span className="font-semibold">Pickup:</span>{" "}
+                      <span className="text-sm font-medium">
+                        <span className="font-bold">Pickup:</span>{" "}
                         {new Date(donation.pickupDateTime).toLocaleString()}
                       </span>
                     </div>
 
                     <div className="flex items-center gap-2 text-gray-700">
-                      <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <Clock className="w-4 h-4 text-red-600" />
+                      <div className="w-10 h-10 bg-gradient-to-br from-red-100 to-red-200 rounded-2xl flex items-center justify-center flex-shrink-0">
+                        <Clock className="w-5 h-5 text-red-600" />
                       </div>
-                      <span className="text-sm">
-                        <span className="font-semibold">Expires:</span>{" "}
+                      <span className="text-sm font-medium">
+                        <span className="font-bold">Expires:</span>{" "}
                         {new Date(donation.expireDateTime).toLocaleString()}
                       </span>
                     </div>
                   </div>
 
-                  <div className="flex gap-2">
+                  <div className="flex gap-3">
                     <button
                       onClick={(e) => handleViewDetails(donation._id, e)}
-                      className="flex-1 py-3 rounded-lg font-semibold transition bg-gray-100 text-gray-700 hover:bg-gray-200 shadow-md flex items-center justify-center gap-2"
+                      className="flex-1 py-4 rounded-xl font-bold transition-all duration-300 bg-gray-100 border-2 border-gray-200 text-gray-700 hover:bg-gray-200 hover:shadow-lg hover:scale-105 flex items-center justify-center gap-2"
                     >
-                      <Eye className="w-4 h-4" />
+                      <Eye className="w-5 h-5" />
                       View Details
                     </button>
                     {donation.status === 'available' && user && user.role === 'ngo' && (
                       <button
-                        onClick={(e) => handleClaimDonation(donation._id, e)}
-                        className="flex-1 py-3 rounded-lg font-semibold transition bg-green-600 text-white hover:bg-green-700 shadow-md"
+                        onClick={(e) => handleClaim(donation._id, e)}
+                        className="flex-1 py-4 rounded-xl font-bold transition-all duration-300 bg-gradient-to-r from-green-600 to-green-700 text-white hover:shadow-2xl hover:scale-105"
                       >
                         Claim Now
                       </button>
                     )}
                   </div>
                   {donation.status !== 'available' && (
-                    <div className={`w-full py-3 rounded-lg font-semibold text-center ${
+                    <div className={`w-full py-4 rounded-xl font-bold text-center ${
                       donation.status === 'reserved' 
-                        ? "bg-yellow-100 text-yellow-800" 
-                        : "bg-gray-200 text-gray-500"
+                        ? "bg-yellow-100 border-2 border-yellow-300 text-yellow-800" 
+                        : "bg-gray-200 border-2 border-gray-300 text-gray-500"
                     }`}>
                       {donation.status === 'reserved' ? "Already Claimed" : "Unavailable"}
                     </div>
