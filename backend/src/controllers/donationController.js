@@ -17,7 +17,6 @@ const createDonation = async (req, res) => {
             return res.status(401).json({ message: 'Unauthorized' });
         }
 
-        // Basic server-side validation for dates
         const now = new Date();
         const pickupAt = new Date(pickupDateTime);
         const expireAt = new Date(expireDateTime);
@@ -55,7 +54,6 @@ const createDonation = async (req, res) => {
             donation: newDonation 
         });
     } catch (err) {
-        console.error('[Donation] Create error:', err);
         res.status(500).json({ 
             success: false,
             error: err.message 
@@ -65,12 +63,10 @@ const createDonation = async (req, res) => {
 
 const getDonations = async (req, res) => {
     try{
-        // Pagination parameters
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 20;
         const skip = (page - 1) * limit;
         
-        // If user is authenticated and is a donor, return their donations
         if (req.user && req.user.role === 'donor') {
             const [donations, total] = await Promise.all([
                 Donation.find({ donorId: req.user.id })
@@ -93,7 +89,6 @@ const getDonations = async (req, res) => {
             });
         }
         
-        // For NGOs or unauthenticated users, return only available donations
         const [donations, total] = await Promise.all([
             Donation.find({ status: "available" })
                 .populate("donorId", "name email phoneNumber address")
@@ -114,7 +109,6 @@ const getDonations = async (req, res) => {
             }
         });
     } catch (err) {
-        console.error("[Donation] Get donations error:", err);
         res.status(500).json({ 
             success: false,
             message: "Server error", 
@@ -132,11 +126,10 @@ const claimDonation = async (req, res) => {
             });
         }
 
-        // Use atomic findOneAndUpdate to prevent race conditions
         const donation = await Donation.findOneAndUpdate(
             { 
                 _id: req.params.id,
-                status: 'available' // Only claim if still available
+                status: 'available'
             },
             {
                 $set: {
@@ -146,7 +139,7 @@ const claimDonation = async (req, res) => {
                 }
             },
             { 
-                new: true, // Return updated document
+                new: true,
                 runValidators: true
             }
         )
@@ -166,7 +159,6 @@ const claimDonation = async (req, res) => {
             donation 
         });
     } catch (err) {
-        console.error('[Donation] Claim error:', err);
         res.status(500).json({ 
             success: false,
             message: "Server error", 
@@ -199,7 +191,6 @@ const getClaimedDonations = async (req, res) => {
             data: donations
         });
     } catch (err) {
-        console.error('[Donation] Get claimed error:', err);
         res.status(500).json({ 
             success: false,
             message: "Server error", 
@@ -212,7 +203,6 @@ const getDonationById = async (req, res) => {
     try {
         const { id } = req.params;
         
-        // Validate ObjectId format
         if (!id || !id.match(/^[0-9a-fA-F]{24}$/)) {
             return res.status(400).json({ 
                 success: false,
@@ -236,8 +226,6 @@ const getDonationById = async (req, res) => {
             data: donation
         });
     } catch (err) {
-        console.error("[Donation] Get by ID error:", err);
-        // Check if it's a CastError (invalid ObjectId)
         if (err.name === 'CastError') {
             return res.status(400).json({ 
                 success: false,
@@ -275,7 +263,6 @@ const confirmPickup = async (req, res) => {
             });
         }
         
-        // Check if the donation was reserved by this NGO
         if (donation.reservedBy && donation.reservedBy.toString() !== req.user.id) {
             return res.status(403).json({ 
                 success: false,
@@ -303,7 +290,6 @@ const confirmPickup = async (req, res) => {
             donation 
         });
     } catch (err) {
-        console.error('[Donation] Confirm pickup error:', err);
         res.status(500).json({ 
             success: false,
             message: "Server error", 
@@ -335,7 +321,6 @@ const cancelClaim = async (req, res) => {
             });
         }
         
-        // Check status first
         if (donation.status !== 'reserved') {
             return res.status(400).json({ 
                 success: false,
@@ -343,7 +328,6 @@ const cancelClaim = async (req, res) => {
             });
         }
         
-        // Check if the donation has a reservedBy (should always be true for reserved status)
         if (!donation.reservedBy) {
             return res.status(400).json({ 
                 success: false,
@@ -351,7 +335,6 @@ const cancelClaim = async (req, res) => {
             });
         }
         
-        // Check if the donation was reserved by this NGO
         if (donation.reservedBy.toString() !== req.user.id) {
             return res.status(403).json({ 
                 success: false,
@@ -372,7 +355,6 @@ const cancelClaim = async (req, res) => {
             donation 
         });
     } catch (err) {
-        console.error('[Donation] Cancel claim error:', err);
         res.status(500).json({ 
             success: false,
             message: "Server error", 

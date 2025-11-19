@@ -11,7 +11,8 @@ const mongoose = require('mongoose');
 const cron = require('node-cron');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-const mongoSanitize = require('express-mongo-sanitize');
+// const mongoSanitize = require('express-mongo-sanitize'); // Removed due to Express 5 compatibility
+const customMongoSanitize = require('./src/middleware/sanitize');
 const authRoutes = require('./src/routes/authRoutes');
 const donationRoutes = require('./src/routes/donationRoutes');
 const uploadRoutes = require('./src/routes/uploadRoutes');
@@ -52,8 +53,8 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Sanitize data to prevent NoSQL injection
-app.use(mongoSanitize());
+// Sanitize data to prevent NoSQL injection (Express 5 compatible)
+app.use(customMongoSanitize);
 
 app.use(morgan('dev'));
 

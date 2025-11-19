@@ -5,9 +5,8 @@ import { Heart, Users, Clock, CheckCircle, Upload } from 'lucide-react';
 const LandingPage = () => {
   const navigate = useNavigate();
   
-  const handleNavigation = (page, role = null) => {
-    // Always use React Router navigation, pass role in state
-    navigate(`/${page}`, { state: role ? { role } : undefined });
+    const handleGetStarted = (role) => {
+    navigate('/register', { state: { role } });
   };
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-yellow-50">
@@ -44,18 +43,6 @@ const LandingPage = () => {
           Food Link bridges the gap between food donors and NGOs in real-time, reducing waste and fighting hunger in your community.
         </p>
         <div className="flex justify-center space-x-4 flex-wrap gap-4">
-          <button 
-            onClick={() => handleNavigation('register', 'donor')}
-            className="bg-green-600 text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-green-700 transition shadow-lg"
-          >
-            Donate Food Now
-          </button>
-          <button 
-            onClick={() => handleNavigation('register', 'ngo')}
-            className="bg-yellow-500 text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-yellow-600 transition shadow-lg"
-          >
-            Claim Food Now
-          </button>
         </div>
         <div className="mt-12 bg-white rounded-2xl shadow-xl p-8 max-w-4xl mx-auto">
           <img 

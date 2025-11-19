@@ -11,11 +11,15 @@ const LoginPage = ({ setUser }) => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showVerificationPrompt, setShowVerificationPrompt] = useState(false);
+  const [unverifiedEmail, setUnverifiedEmail] = useState("");
+  const [resendingEmail, setResendingEmail] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
+    setShowVerificationPrompt(false);
 
     try {
       const res = await axios.post(API_ENDPOINTS.AUTH.LOGIN, {
@@ -31,16 +35,34 @@ const LoginPage = ({ setUser }) => {
 
       setUser(user);
       toast.success(`Welcome back, ${user.name}!`);
-      // Always use React Router navigation
       navigate("/dashboard");
     } catch (error) {
-      console.log(error);
-      const msg = 
-        error.response?.data?.message || "Login failed, please try again.";
-      setError(msg);
-      toast.error(msg);
+      if (error.response?.data?.requiresVerification) {
+        setUnverifiedEmail(error.response.data.email || email);
+        setShowVerificationPrompt(true);
+        setError("Please verify your email before logging in.");
+      } else {
+        const msg = 
+          error.response?.data?.message || "Login failed, please try again.";
+        setError(msg);
+        toast.error(msg);
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    setResendingEmail(true);
+    try {
+      await axios.post(API_ENDPOINTS.AUTH.RESEND_VERIFICATION, {
+        email: unverifiedEmail
+      });
+      toast.success('Verification email sent! Please check your inbox.');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to send verification email');
+    } finally {
+      setResendingEmail(false);
     }
   };
 
@@ -83,6 +105,22 @@ const LoginPage = ({ setUser }) => {
             </div>
 
             {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
+
+            {showVerificationPrompt && (
+              <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-yellow-800 text-sm mb-3">
+                  Your email address is not verified yet. Please check your inbox or request a new verification email.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleResendVerification}
+                  disabled={resendingEmail}
+                  className="w-full bg-yellow-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-yellow-700 transition"
+                >
+                  {resendingEmail ? 'Sending...' : 'Resend Verification Email'}
+                </button>
+              </div>
+            )}
 
             <div className="mb-6 text-right">
               <a href="#" className="text-green-600 hover:text-green-700 text-sm">

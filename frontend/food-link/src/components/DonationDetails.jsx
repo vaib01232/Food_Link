@@ -29,12 +29,10 @@ const DonationDetails = ({ user }) => {
 
   useEffect(() => {
     fetchDonationDetails();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const fetchDonationDetails = async () => {
     if (!id) {
-      console.error('No donation ID provided');
       setError('No donation ID provided');
       setLoading(false);
       return;
@@ -46,16 +44,10 @@ const DonationDetails = ({ user }) => {
       const token = localStorage.getItem('token');
       const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
       
-      console.log('Fetching donation with ID:', id);
-      console.log('API URL:', API_ENDPOINTS.DONATIONS.BY_ID(id));
-      
       const res = await axios.get(API_ENDPOINTS.DONATIONS.BY_ID(id), config);
-      console.log('Donation fetched successfully:', res.data);
       const donationData = res.data.data || res.data;
       setDonation(donationData);
     } catch (err) {
-      console.error('Error fetching donation:', err);
-      console.error('Error response:', err.response);
       const errorMessage = err.response?.data?.message || err.message || 'Failed to load donation details';
       setError(errorMessage);
       toast.error(errorMessage);
@@ -82,7 +74,6 @@ const DonationDetails = ({ user }) => {
       setDonation(res.data.donation);
       toast.success('Donation claimed successfully!');
     } catch (err) {
-      console.error('Error claiming donation:', err);
       toast.error(err.response?.data?.message || 'Failed to claim donation');
     } finally {
       setActionLoading(false);
@@ -102,7 +93,6 @@ const DonationDetails = ({ user }) => {
       setDonation(res.data.donation);
       toast.success('Pickup confirmed successfully!');
     } catch (err) {
-      console.error('Error confirming pickup:', err);
       toast.error(err.response?.data?.message || 'Failed to confirm pickup');
     } finally {
       setActionLoading(false);
@@ -126,7 +116,6 @@ const DonationDetails = ({ user }) => {
       setDonation(res.data.donation);
       toast.success('Claim cancelled successfully');
     } catch (err) {
-      console.error('Error cancelling claim:', err);
       toast.error(err.response?.data?.message || 'Failed to cancel claim');
     } finally {
       setActionLoading(false);
