@@ -101,13 +101,15 @@ const PostDonationPage = () => {
       const form = new FormData();
       selectedFiles.forEach((file) => form.append("images", file));
       const res = await axios.post(`${API_ENDPOINTS.UPLOADS.IMAGES}`, form, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { 
+          Authorization: `Bearer ${token}`
+        },
       });
       const urls = res.data?.urls || [];
       setUploadedUrls(urls);
       toast.success("Images uploaded successfully");
     } catch (err) {
-      console.error(err);
+      console.error("Upload error:", err);
       toast.error(err.response?.data?.message || "Failed to upload images");
     } finally {
       setUploading(false);

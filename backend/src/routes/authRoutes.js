@@ -1,5 +1,5 @@
 const express = require('express');
-const { registerUser, loginUser } = require('../controllers/authController');
+const { registerUser, loginUser, verifyEmail, resendVerificationEmail } = require('../controllers/authController');
 const { body } = require('express-validator');
 
 const router = express.Router();
@@ -14,7 +14,8 @@ router.post(
             .withMessage('Password must be at least 8 characters')
             .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
             .withMessage('Password must contain at least one uppercase letter, one lowercase letter, and one number'),
-        body('role').isIn(['donor', 'ngo']).withMessage('Role must be either donor or ngo')
+        body('role').isIn(['donor', 'ngo']).withMessage('Role must be either donor or ngo'),
+        body('phoneNumber').optional().isMobilePhone().withMessage('Invalid phone number')
     ],
     registerUser
 );
@@ -26,6 +27,18 @@ router.post(
         body('password').notEmpty().withMessage('Password is required').trim()
     ],
     loginUser
+);
+
+// Email verification endpoint
+router.get('/verify-email', verifyEmail);
+
+// Resend verification email endpoint
+router.post(
+    '/resend-verification',
+    [
+        body('email').isEmail().withMessage('Valid email is required').normalizeEmail()
+    ],
+    resendVerificationEmail
 );
 
 module.exports = router;

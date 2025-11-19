@@ -11,24 +11,22 @@ const GetDonationsPage = ({ user }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    const fetchDonations = async () => {
-      try{
-        const res = await axios.get(API_ENDPOINTS.DONATIONS.BASE);
-        // Handle both old format (array) and new format (object with data)
-        const donationsData = res.data.data || res.data;
-        setDonations(Array.isArray(donationsData) ? donationsData : []);
-        setError("");
-      } catch (error) {
-        console.error("Error fetching donations: ", error);
-        setError("Failed to load donations. Please try again.");
-        toast.error("Failed to load donations");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchDonations();
-  }, []);
+  const refetchDonations = async () => {
+    setLoading(true);
+    try{
+      const res = await axios.get(API_ENDPOINTS.DONATIONS.BASE);
+      const donationsData = res.data.data || res.data;
+      setDonations(Array.isArray(donationsData) ? donationsData : []);
+      setError("");
+    } catch (error) {
+      console.error("Error fetching donations: ", error);
+      setError("Failed to load donations. Please try again.");
+      toast.error("Failed to load donations");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     refetchDonations();
   }, []);

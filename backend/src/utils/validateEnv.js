@@ -39,6 +39,11 @@ const validateEnv = () => {
     console.warn('[Environment] WARNING: Using default JWT_SECRET. Please change this in production!');
   }
   
+  // Check email configuration
+  if (!process.env.EMAIL_SERVICE && !process.env.SMTP_HOST) {
+    console.warn('[Environment] WARNING: No email service configured. Verification emails will be logged to console (development mode).');
+  }
+  
   console.log('[Environment] All required environment variables are set ✓');
 };
 

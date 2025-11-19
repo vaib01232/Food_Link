@@ -5,6 +5,7 @@ import { Toaster } from 'react-hot-toast';
 import LandingPage from './components/LandingPage.jsx';
 import RegisterPage from './components/RegisterPage.jsx';
 import LoginPage from './components/LoginPage.jsx';
+import EmailVerificationPage from './components/EmailVerificationPage.jsx';
 import Dashboard from './components/Dashboard.jsx';
 import PostDonationPage from './components/PostDonation.jsx';
 import GetDonationsPage from './components/GetDonation.jsx';
@@ -115,6 +116,14 @@ const App = () => {
           path="/login" 
           element={
             <LoginPage 
+              setUser={setUser}
+            />
+          } 
+        />
+        <Route 
+          path="/verify-email" 
+          element={
+            <EmailVerificationPage 
               setUser={setUser}
             />
           } 
