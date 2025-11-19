@@ -10,8 +10,6 @@ const registerUser = async (req, res) => {
     const errors = validationResult(req);
     
     if(!errors.isEmpty()){
-        console.log('[Auth] Registration validation failed:', JSON.stringify(errors.array(), null, 2));
-        console.log('[Auth] Request body:', JSON.stringify(req.body, null, 2));
         return res.status(400).json({ 
             success: false,
             message: 'Validation failed',
@@ -22,8 +20,8 @@ const registerUser = async (req, res) => {
     const { name, email, password, role } = req.body;
 
     try {
-        let user = await User.findOne({ email });
-        if(user) {
+        const existingUser = await User.findOne({ email });
+        if(existingUser) {
             return res.status(400).json({ 
                 success: false,
                 message: 'User already exists' 
@@ -33,7 +31,7 @@ const registerUser = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const passwordHash = await bcrypt.hash(password, salt);
 
-        user = new User({
+        const user = new User({
             name,
             email,
             passwordHash,
@@ -43,24 +41,18 @@ const registerUser = async (req, res) => {
 
         await user.save();
 
-        // Generate verification token
         const verificationToken = crypto.randomBytes(32).toString('hex');
         
-        // Save token to database
         const tokenDoc = new VerificationToken({
             userId: user._id,
             token: verificationToken,
-            expiresAt: new Date(Date.now() + 30 * 60 * 1000) // 30 minutes
+            expiresAt: new Date(Date.now() + 30 * 60 * 1000)
         });
         await tokenDoc.save();
 
-        // Send verification email
         try {
             await sendVerificationEmail(email, name, verificationToken);
-            console.log('[Auth] Verification email sent to:', email);
         } catch (emailError) {
-            console.error('[Auth] Failed to send verification email:', emailError);
-            // Don't fail registration if email fails
         }
 
         res.status(201).json({
@@ -70,7 +62,6 @@ const registerUser = async (req, res) => {
             email: email
         });
     } catch (error) {
-        console.error('[Auth] Registration error:', error);
         res.status(500).json({ 
             success: false,
             message: 'Server error', 
@@ -109,7 +100,6 @@ const loginUser = async (req, res) => {
             });
         }
 
-        // Check if email is verified (unless user is admin)
         if (!user.isEmailVerified && user.role !== 'admin') {
             return res.status(403).json({
                 success: false,
@@ -137,7 +127,6 @@ const loginUser = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('[Auth] Login error:', error);
         res.status(500).json({ 
             success: false,
             message: 'Server error', 
@@ -157,7 +146,6 @@ const verifyEmail = async (req, res) => {
             });
         }
 
-        // Find the token in database
         const tokenDoc = await VerificationToken.findOne({ token });
 
         if (!tokenDoc) {
@@ -167,7 +155,6 @@ const verifyEmail = async (req, res) => {
             });
         }
 
-        // Check if token has expired
         if (new Date() > tokenDoc.expiresAt) {
             await VerificationToken.deleteOne({ _id: tokenDoc._id });
             return res.status(400).json({
@@ -177,7 +164,6 @@ const verifyEmail = async (req, res) => {
             });
         }
 
-        // Find and update user
         const user = await User.findById(tokenDoc.userId);
 
         if (!user) {
@@ -194,20 +180,15 @@ const verifyEmail = async (req, res) => {
             });
         }
 
-        // Update user verification status
         user.isEmailVerified = true;
         user.emailVerifiedAt = new Date();
         await user.save();
 
-        // Delete the used token
         await VerificationToken.deleteOne({ _id: tokenDoc._id });
 
-        // Generate login token for auto-login
         const loginToken = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
             expiresIn: '7d'
         });
-
-        console.log('[Auth] Email verified successfully for:', user.email);
 
         res.json({
             success: true,
@@ -224,7 +205,6 @@ const verifyEmail = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('[Auth] Email verification error:', error);
         res.status(500).json({
             success: false,
             message: 'Server error during verification',
@@ -244,7 +224,6 @@ const resendVerificationEmail = async (req, res) => {
             });
         }
 
-        // Find user
         const user = await User.findOne({ email });
 
         if (!user) {
@@ -261,24 +240,19 @@ const resendVerificationEmail = async (req, res) => {
             });
         }
 
-        // Delete any existing tokens for this user
         await VerificationToken.deleteMany({ userId: user._id });
 
-        // Generate new verification token
         const verificationToken = crypto.randomBytes(32).toString('hex');
         
-        // Save new token to database
         const tokenDoc = new VerificationToken({
             userId: user._id,
             token: verificationToken,
-            expiresAt: new Date(Date.now() + 30 * 60 * 1000) // 30 minutes
+            expiresAt: new Date(Date.now() + 30 * 60 * 1000)
         });
         await tokenDoc.save();
 
-        // Send verification email
         try {
             await sendVerificationEmail(email, user.name, verificationToken);
-            console.log('[Auth] Verification email resent to:', email);
 
             res.json({
                 success: true,
@@ -286,7 +260,6 @@ const resendVerificationEmail = async (req, res) => {
                 email: email
             });
         } catch (emailError) {
-            console.error('[Auth] Failed to send verification email:', emailError);
             res.status(500).json({
                 success: false,
                 message: 'Failed to send verification email. Please try again later.'
@@ -294,7 +267,6 @@ const resendVerificationEmail = async (req, res) => {
         }
 
     } catch (error) {
-        console.error('[Auth] Resend verification error:', error);
         res.status(500).json({
             success: false,
             message: 'Server error',

@@ -24,7 +24,6 @@ const Dashboard = ({ user }) => {
     try {
       const token = localStorage.getItem('token');
       if (user.role === 'donor') {
-        // For donors, get all their donations (the endpoint now returns user-specific donations when authenticated as donor)
         const response = await axios.get(API_ENDPOINTS.DONATIONS.BASE, {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -38,7 +37,6 @@ const Dashboard = ({ user }) => {
           availableNearby: 0
         });
       } else if (user.role === 'ngo') {
-        // For NGOs, get available donations and their claimed donations
         const [availableResponse, claimedResponse] = await Promise.all([
           axios.get(API_ENDPOINTS.DONATIONS.BASE),
           axios.get(API_ENDPOINTS.DONATIONS.CLAIMED, {
@@ -59,7 +57,6 @@ const Dashboard = ({ user }) => {
         });
       }
     } catch (error) {
-      console.error('Error fetching stats:', error);
       toast.error('Failed to load dashboard data');
     } finally {
       setLoading(false);
@@ -68,7 +65,6 @@ const Dashboard = ({ user }) => {
 
   useEffect(() => {
     fetchStats();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user.role]);
 
 

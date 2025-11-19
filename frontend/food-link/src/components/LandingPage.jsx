@@ -5,9 +5,8 @@ import { Heart, Users, Clock, CheckCircle, Upload } from 'lucide-react';
 const LandingPage = () => {
   const navigate = useNavigate();
   
-  const handleNavigation = (page, role = null) => {
-    // Always use React Router navigation, pass role in state
-    navigate(`/${page}`, { state: role ? { role } : undefined });
+    const handleGetStarted = (role) => {
+    navigate('/register', { state: { role } });
   };
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-yellow-50">

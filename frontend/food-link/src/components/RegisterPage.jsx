@@ -10,7 +10,6 @@ const RegisterPage = () => {
   const location = useLocation();
   const [userRole, setUserRole] = useState(location.state?.role || '');
   
-  // Get role from navigation state if available
   useEffect(() => {
     if (location.state?.role) {
       setUserRole(location.state.role);
@@ -56,7 +55,6 @@ const RegisterPage = () => {
 
       setError("");
       
-      // Check if verification is required
       if (response.data.requiresVerification) {
         setRegisteredEmail(formData.email);
         setShowVerificationMessage(true);
@@ -66,7 +64,6 @@ const RegisterPage = () => {
         navigate('/login');
       }
     } catch (error) {
-      console.log(error);
       const errorMessage = error.response?.data?.message || 
                           error.response?.data?.errors?.[0]?.msg || 
                           'Registration failed';

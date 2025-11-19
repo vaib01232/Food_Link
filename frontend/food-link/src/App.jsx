@@ -31,7 +31,6 @@ const App = () => {
         // Set axios default header
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       } catch (error) {
-        console.error('Error parsing user data:', error);
         localStorage.removeItem('token');
         localStorage.removeItem('user');
       }

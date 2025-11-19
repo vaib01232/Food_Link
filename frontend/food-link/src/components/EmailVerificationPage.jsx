@@ -8,7 +8,7 @@ import toast from 'react-hot-toast';
 const EmailVerificationPage = ({ setUser }) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [status, setStatus] = useState('verifying'); // 'verifying', 'success', 'error'
+  const [status, setStatus] = useState('verifying');
   const [message, setMessage] = useState('');
   const [isExpired, setIsExpired] = useState(false);
   const [email, setEmail] = useState('');
@@ -34,7 +34,6 @@ const EmailVerificationPage = ({ setUser }) => {
       setStatus('success');
       setMessage(response.data.message);
       
-      // Auto-login if token provided
       if (response.data.autoLogin && response.data.token) {
         const { token: loginToken, user } = response.data;
         localStorage.setItem('token', loginToken);
@@ -47,13 +46,11 @@ const EmailVerificationPage = ({ setUser }) => {
         
         toast.success('Email verified! Redirecting to dashboard...');
         
-        // Redirect to dashboard after 2 seconds
         setTimeout(() => {
           navigate('/dashboard');
         }, 2000);
       }
     } catch (error) {
-      console.error('Verification error:', error);
       setStatus('error');
       
       if (error.response?.data?.expired) {
@@ -77,7 +74,6 @@ const EmailVerificationPage = ({ setUser }) => {
       toast.success('Verification email sent! Please check your inbox.');
       setEmail('');
     } catch (error) {
-      console.error(error);
       toast.error(error.response?.data?.message || 'Failed to send verification email');
     } finally {
       setResendingEmail(false);

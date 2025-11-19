@@ -30,7 +30,6 @@ const authMiddleware = async (req, res, next) => {
         next();
     } catch (err) {
         if (err.name === 'TokenExpiredError') {
-            console.log('[Auth] Token expired for:', err.expiredAt);
             return res.status(401).json({ 
                 success: false,
                 message: "Token has expired",
@@ -38,13 +37,11 @@ const authMiddleware = async (req, res, next) => {
             });
         }
         if (err.name === 'JsonWebTokenError') {
-            console.log('[Auth] Invalid token');
             return res.status(401).json({ 
                 success: false,
                 message: "Invalid token" 
             });
         }
-        console.error('[Auth] Token verification error:', err);
         res.status(401).json({ 
             success: false,
             message: "Token is not valid" 

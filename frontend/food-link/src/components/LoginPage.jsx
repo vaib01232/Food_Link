@@ -35,12 +35,8 @@ const LoginPage = ({ setUser }) => {
 
       setUser(user);
       toast.success(`Welcome back, ${user.name}!`);
-      // Always use React Router navigation
       navigate("/dashboard");
     } catch (error) {
-      console.log(error);
-      
-      // Check if error is due to unverified email
       if (error.response?.data?.requiresVerification) {
         setUnverifiedEmail(error.response.data.email || email);
         setShowVerificationPrompt(true);
@@ -64,7 +60,6 @@ const LoginPage = ({ setUser }) => {
       });
       toast.success('Verification email sent! Please check your inbox.');
     } catch (error) {
-      console.error(error);
       toast.error(error.response?.data?.message || 'Failed to send verification email');
     } finally {
       setResendingEmail(false);

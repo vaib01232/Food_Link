@@ -19,7 +19,6 @@ const GetDonationsPage = ({ user }) => {
       setDonations(Array.isArray(donationsData) ? donationsData : []);
       setError("");
     } catch (error) {
-      console.error("Error fetching donations: ", error);
       setError("Failed to load donations. Please try again.");
       toast.error("Failed to load donations");
     } finally {
@@ -33,14 +32,13 @@ const GetDonationsPage = ({ user }) => {
 
   const handleViewDetails = (donationId, e) => {
     if (e) {
-      e.stopPropagation(); // Prevent card click from firing
+      e.stopPropagation();
     }
-    console.log('Navigating to donation:', donationId);
     navigate(`/donation/${donationId}`);
   };
 
-  const handleClaimDonation = async (donationId, e) => {
-    e.stopPropagation(); // Prevent navigation when claiming
+  const handleClaim = async (donationId, e) => {
+    e.stopPropagation();
     try{
       const token = localStorage.getItem("token");
       await axios.patch(API_ENDPOINTS.DONATIONS.CLAIM(donationId),{},
@@ -52,13 +50,10 @@ const GetDonationsPage = ({ user }) => {
           d._id === donationId ? { ...d, status: 'reserved'} : d
         )
       );
-      toast.success("Donation claimed successfully! Redirecting to details...");
-      // Navigate to details page after claiming
-      setTimeout(() => {
-        navigate(`/donation/${donationId}`);
-      }, 1000);
+      toast.success("Donation claimed successfully!");
+      
+      navigate(`/donation/${donationId}`);
     } catch (error) {
-      console.error("Error claiming donation:", error);
       toast.error(error.response?.data?.message || "Failed to claim donation");
     }
   };
