@@ -67,55 +67,61 @@ const LoginPage = ({ setUser }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-green-50 to-yellow-50 py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-yellow-50 to-green-50 py-12 px-4">
       <div className="max-w-md mx-auto">
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center space-x-2 mb-4">
-            <Heart className="w-10 h-10 text-green-600" />
-            <span className="text-3xl font-bold text-green-800">Food Link</span>
+        <div className="text-center mb-8 animate-fadeInUp">
+          <div className="flex items-center justify-center space-x-3 mb-6">
+            <div className="bg-gradient-to-br from-green-600 to-green-700 rounded-2xl p-3">
+              <Heart className="w-8 h-8 text-white" />
+            </div>
+            <span className="text-3xl font-bold bg-gradient-to-r from-green-700 to-green-600 bg-clip-text text-transparent">Food Link</span>
           </div>
-          <h2 className="text-3xl font-bold text-green-900 mb-2">Welcome Back</h2>
-          <p className="text-gray-600">Login to continue making a difference</p>
+          <h2 className="text-4xl font-bold text-gray-900 mb-3">Welcome Back</h2>
+          <p className="text-gray-600 text-lg">Login to continue making a difference</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-10 border border-gray-100">
           <form onSubmit={handleLogin}>
-            <div className="mb-4">
-              <label className="block text-gray-700 font-semibold mb-2">Email</label>
+            <div className="mb-5">
+              <label className="block text-sm font-bold text-gray-700 mb-2">Email Address</label>
               <input 
                 type="email" 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
+                className="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 focus:border-green-500 focus:ring-4 focus:ring-green-100 outline-none transition-all duration-300 text-gray-900"
                 placeholder="your@email.com"
                 required
               />
             </div>
 
             <div className="mb-6">
-              <label className="block text-gray-700 font-semibold mb-2">Password</label>
+              <label className="block text-sm font-bold text-gray-700 mb-2">Password</label>
               <input 
                 type="password" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
+                className="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 focus:border-green-500 focus:ring-4 focus:ring-green-100 outline-none transition-all duration-300 text-gray-900"
                 placeholder="Enter your password"
                 required
               />
             </div>
 
-            {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
+            {error && (
+              <div className="mb-5 p-4 bg-red-50 border-l-4 border-red-500 rounded-xl text-red-700 text-sm animate-fadeInUp font-medium">
+                {error}
+              </div>
+            )}
 
             {showVerificationPrompt && (
-              <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <p className="text-yellow-800 text-sm mb-3">
+              <div className="mb-5 p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded-xl animate-fadeInUp">
+                <p className="text-yellow-800 text-sm mb-3 font-medium">
                   Your email address is not verified yet. Please check your inbox or request a new verification email.
                 </p>
                 <button
                   type="button"
                   onClick={handleResendVerification}
                   disabled={resendingEmail}
-                  className="w-full bg-yellow-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-yellow-700 transition"
+                  className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 text-white py-2.5 rounded-xl text-sm font-bold hover:shadow-lg hover:scale-[1.02] transition-all duration-300 disabled:opacity-50"
                 >
                   {resendingEmail ? 'Sending...' : 'Resend Verification Email'}
                 </button>
@@ -123,7 +129,7 @@ const LoginPage = ({ setUser }) => {
             )}
 
             <div className="mb-6 text-right">
-              <a href="#" className="text-green-600 hover:text-green-700 text-sm">
+              <a href="#" className="text-green-600 hover:text-green-700 text-sm font-semibold hover:underline transition-all duration-300">
                 Forgot Password?
               </a>
             </div>
@@ -131,17 +137,17 @@ const LoginPage = ({ setUser }) => {
             <button 
               type="submit"
               disabled={loading}
-              className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition shadow-lg"
+              className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-4 rounded-xl font-bold hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 text-lg"
             >
               {loading ? "Logging in..." : "Login"}
             </button>
           </form>
 
-          <p className="text-center text-gray-600 mt-6">
+          <p className="text-center text-gray-600 mt-8">
             Don't have an account?{' '}
             <button 
               onClick={() => navigate('/register')}
-              className="text-green-600 font-semibold hover:text-green-700"
+              className="text-green-600 font-bold hover:text-green-700 hover:underline transition-all duration-300"
             >
               Sign Up
             </button>
@@ -151,7 +157,7 @@ const LoginPage = ({ setUser }) => {
         <div className="text-center mt-6">
           <button 
             onClick={() => navigate('/')}
-            className="text-green-600 hover:text-green-700 font-medium"
+            className="text-green-600 hover:text-green-700 font-semibold inline-flex items-center gap-2 hover:gap-3 transition-all duration-300"
           >
             ← Back to Home
           </button>

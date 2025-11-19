@@ -15,8 +15,10 @@ import {
   ExternalLink,
   Image as ImageIcon
 } from 'lucide-react';
+import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
 import axios from 'axios';
 import { API_ENDPOINTS, BACKEND_BASE_URL } from '../config/api';
+import { GOOGLE_MAPS_API_KEY } from '../config/maps';
 import toast from 'react-hot-toast';
 
 const DonationDetails = ({ user }) => {
@@ -26,6 +28,12 @@ const DonationDetails = ({ user }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
+
+  // Google Maps loader - MUST be at the top before any conditional returns
+  const { isLoaded: isMapLoaded, loadError: mapLoadError } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey: GOOGLE_MAPS_API_KEY
+  });
 
   useEffect(() => {
     fetchDonationDetails();
@@ -148,12 +156,29 @@ const DonationDetails = ({ user }) => {
     }
   };
 
+  // Map configuration - defined here to avoid issues with conditional rendering
+  const mapContainerStyle = {
+    width: '100%',
+    height: '300px',
+    borderRadius: '0.75rem'
+  };
+
+  const mapOptions = {
+    disableDefaultUI: false,
+    zoomControl: true,
+    streetViewControl: false,
+    mapTypeControl: false,
+    fullscreenControl: true,
+    draggable: true,
+    scrollwheel: true,
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-green-50 to-yellow-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-yellow-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-          <p className="text-green-700 font-semibold">Loading donation details...</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-green-200 border-t-green-600 mx-auto mb-4"></div>
+          <p className="text-green-700 font-bold text-lg">Loading donation details...</p>
         </div>
       </div>
     );
@@ -161,11 +186,13 @@ const DonationDetails = ({ user }) => {
 
   if (error || !donation) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-green-50 to-yellow-50 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-yellow-50 flex items-center justify-center px-4">
         <div className="text-center max-w-md">
-          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Donation Not Found</h2>
-          <p className="text-gray-600 mb-6">{error || 'The donation you are looking for does not exist.'}</p>
+          <div className="w-20 h-20 bg-gradient-to-br from-red-100 to-red-200 rounded-full flex items-center justify-center mx-auto mb-6">
+            <AlertCircle className="w-10 h-10 text-red-500" />
+          </div>
+          <h2 className="text-3xl font-bold text-gray-900 mb-3">Donation Not Found</h2>
+          <p className="text-gray-600 mb-8 text-lg">{error || 'The donation you are looking for does not exist.'}</p>
           <button
             onClick={() => {
               if (user && user.role === 'ngo') {
@@ -174,7 +201,7 @@ const DonationDetails = ({ user }) => {
                 navigate('/');
               }
             }}
-            className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition"
+            className="bg-gradient-to-r from-green-600 to-green-700 text-white px-8 py-4 rounded-xl font-bold hover:shadow-2xl hover:scale-105 transition-all duration-300 text-lg"
           >
             {user && user.role === 'ngo' ? 'Back to Donations' : 'Go to Home'}
           </button>
@@ -249,12 +276,12 @@ const DonationDetails = ({ user }) => {
             )}
 
             {/* Donation Details */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <h2 className="text-xl font-semibold text-green-900 mb-4">Donation Details</h2>
+            <div className="bg-white rounded-3xl shadow-2xl p-8 border-2 border-gray-100">
+              <h2 className="text-2xl font-bold text-green-900 mb-6">Donation Details</h2>
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Package className="w-5 h-5 text-green-600" />
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-100 to-green-200 rounded-2xl flex items-center justify-center flex-shrink-0">
+                    <Package className="w-6 h-6 text-green-600" />
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Quantity</p>
@@ -367,48 +394,89 @@ const DonationDetails = ({ user }) => {
           {/* Right Column - Map and Actions */}
           <div className="space-y-6">
             {/* Location */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <h2 className="text-xl font-semibold text-green-900 mb-4 flex items-center">
-                <MapPin className="w-5 h-5 mr-2" />
+            <div className="bg-white rounded-3xl shadow-2xl p-8 border-2 border-gray-100">
+              <h2 className="text-2xl font-bold text-green-900 mb-6 flex items-center">
+                <MapPin className="w-6 h-6 mr-2" />
                 Pickup Location
               </h2>
-              <p className="text-gray-700 mb-4">{donation.pickupAddress}</p>
+              <p className="text-gray-700 mb-6 font-medium">{donation.pickupAddress}</p>
               
               {/* Google Maps */}
               {donation.pickupGeo && donation.pickupGeo.lat && donation.pickupGeo.lng ? (
                 <div className="mb-4">
-                  <div 
-                    className="relative w-full h-64 rounded-lg overflow-hidden border-2 border-gray-200 mb-4 bg-gradient-to-br from-green-50 to-blue-50 cursor-pointer hover:border-green-400 transition group"
-                    onClick={openGoogleMaps}
-                  >
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <MapPin className="w-16 h-16 text-green-600 mb-3 group-hover:scale-110 transition-transform" />
-                      <p className="text-gray-700 font-medium text-lg">Pickup Location</p>
-                      <p className="text-gray-500 text-sm mt-1">Click to open in Google Maps</p>
-                      <div className="mt-4 text-xs text-gray-400">
-                        {donation.pickupGeo.lat.toFixed(6)}, {donation.pickupGeo.lng.toFixed(6)}
+                  {mapLoadError ? (
+                    <div className="bg-red-50 border-l-4 border-red-400 rounded-xl p-5 mb-4">
+                      <div className="flex gap-3">
+                        <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-bold text-red-800 text-sm mb-1">Map Loading Error</p>
+                          <p className="text-red-700 text-sm font-medium">
+                            Failed to load Google Maps. Please check your internet connection or try again later.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : isMapLoaded ? (
+                    <div className="border-4 border-gray-200 rounded-2xl overflow-hidden shadow-lg mb-4">
+                      <GoogleMap
+                        mapContainerStyle={mapContainerStyle}
+                        center={{
+                          lat: parseFloat(donation.pickupGeo.lat),
+                          lng: parseFloat(donation.pickupGeo.lng)
+                        }}
+                        zoom={15}
+                        options={mapOptions}
+                      >
+                        <Marker
+                          position={{
+                            lat: parseFloat(donation.pickupGeo.lat),
+                            lng: parseFloat(donation.pickupGeo.lng)
+                          }}
+                        />
+                      </GoogleMap>
+                    </div>
+                  ) : (
+                    <div className="bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-200 rounded-2xl p-8 text-center mb-4">
+                      <div className="flex flex-col items-center">
+                        <div className="w-10 h-10 border-4 border-green-600 border-t-transparent rounded-full animate-spin mb-3"></div>
+                        <p className="text-green-800 font-bold text-sm">Loading map...</p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div className="bg-gradient-to-r from-green-50 to-green-100 border-2 border-green-200 rounded-xl p-4 mb-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-bold text-green-900 mb-1">📍 Coordinates</p>
+                        <p className="text-xs text-green-700 font-medium">
+                          {donation.pickupGeo.lat.toFixed(6)}, {donation.pickupGeo.lng.toFixed(6)}
+                        </p>
+                      </div>
+                      <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center">
+                        <MapPin className="w-6 h-6 text-white" />
                       </div>
                     </div>
                   </div>
+
                   <button
                     onClick={openGoogleMaps}
-                    className="w-full flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-green-700 transition shadow-md"
+                    className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-4 rounded-xl font-bold hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 text-lg"
                   >
                     <ExternalLink className="w-5 h-5" />
-                    Open in Google Maps
+                    Get Directions in Google Maps
                   </button>
                 </div>
               ) : (
-                <div className="bg-gray-100 rounded-lg p-8 text-center">
-                  <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                  <p className="text-gray-600">Location coordinates not available</p>
+                <div className="bg-gray-100 rounded-2xl p-8 text-center border-2 border-gray-200">
+                  <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                  <p className="text-gray-600 font-medium mb-4">Map coordinates not available</p>
                   {donation.pickupAddress && (
                     <button
                       onClick={() => {
                         const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(donation.pickupAddress)}`;
                         window.open(url, '_blank');
                       }}
-                      className="mt-4 text-green-600 hover:text-green-800 font-medium flex items-center justify-center gap-2"
+                      className="text-green-600 hover:text-green-800 font-bold flex items-center justify-center gap-2 mx-auto hover:underline transition-all duration-300"
                     >
                       <ExternalLink className="w-4 h-4" />
                       Search address in Google Maps
@@ -420,14 +488,14 @@ const DonationDetails = ({ user }) => {
 
             {/* Action Buttons */}
             {user && user.role === 'ngo' && (
-              <div className="bg-white rounded-xl shadow-lg p-6 space-y-4">
-                <h2 className="text-xl font-semibold text-green-900 mb-4">Actions</h2>
+              <div className="bg-white rounded-3xl shadow-2xl p-8 space-y-4 border-2 border-gray-100">
+                <h2 className="text-2xl font-bold text-green-900 mb-6">Actions</h2>
                 
                 {canClaim && (
                   <button
                     onClick={handleClaim}
                     disabled={actionLoading}
-                    className="w-full bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-4 rounded-xl font-bold hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2 text-lg"
                   >
                     {actionLoading ? (
                       <>
