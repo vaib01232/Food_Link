@@ -4,12 +4,24 @@ import { Heart, Users, Clock, MapPin, Calendar, Eye } from 'lucide-react';
 import axios from 'axios';
 import { API_ENDPOINTS, BACKEND_BASE_URL } from '../config/api';
 import toast from 'react-hot-toast';
+import PhoneNumberModal from './PhoneNumberModal';
 
-const GetDonationsPage = ({ user }) => {
+const GetDonationsPage = ({ user: userProp }) => {
   const navigate = useNavigate();
   const [donations, setDonations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [showPhoneModal, setShowPhoneModal] = useState(false);
+  const [pendingClaimId, setPendingClaimId] = useState(null);
+  const [user, setUser] = useState(null);
+
+  // Load user on component mount
+  useEffect(() => {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      setUser(JSON.parse(userData));
+    }
+  }, [userProp]);
 
   const refetchDonations = async () => {
     setLoading(true);
@@ -39,6 +51,18 @@ const GetDonationsPage = ({ user }) => {
 
   const handleClaim = async (donationId, e) => {
     e.stopPropagation();
+
+    // Check if user has phone number
+    if (!user?.phoneNumber) {
+      setPendingClaimId(donationId);
+      setShowPhoneModal(true);
+      return;
+    }
+
+    await processClaim(donationId);
+  };
+
+  const processClaim = async (donationId) => {
     try{
       const token = localStorage.getItem("token");
       await axios.patch(API_ENDPOINTS.DONATIONS.CLAIM(donationId),{},
@@ -83,7 +107,8 @@ const GetDonationsPage = ({ user }) => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+    <>
+      <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-10 animate-fadeInUp">
           <h2 className="text-5xl font-bold text-green-900 mb-3">Available Donations</h2>
           <p className="text-gray-600 text-lg font-medium">Browse and claim food donations from verified donors</p>
@@ -223,6 +248,28 @@ const GetDonationsPage = ({ user }) => {
           )}
         </div>
       </div>
+
+      {/* Phone Number Modal */}
+      <PhoneNumberModal
+        isOpen={showPhoneModal}
+        onClose={() => {
+          setShowPhoneModal(false);
+          setPendingClaimId(null);
+        }}
+        onSuccess={() => {
+          // Reload user data
+          const userData = localStorage.getItem('user');
+          if (userData) {
+            setUser(JSON.parse(userData));
+          }
+          // Process the pending claim
+          if (pendingClaimId) {
+            processClaim(pendingClaimId);
+            setPendingClaimId(null);
+          }
+        }}
+      />
+    </>
   );
 };
 

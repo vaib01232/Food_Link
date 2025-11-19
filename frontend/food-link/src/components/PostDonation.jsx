@@ -17,6 +17,7 @@ import { API_ENDPOINTS, BACKEND_BASE_URL } from '../config/api';
 import { GOOGLE_MAPS_API_KEY } from '../config/maps';
 import toast from 'react-hot-toast';
 import LocationPicker from './LocationPicker';
+import PhoneNumberModal from './PhoneNumberModal';
 
 const PostDonationPage = () => {
   const navigate = useNavigate();
@@ -43,6 +44,16 @@ const PostDonationPage = () => {
   const [uploadedUrls, setUploadedUrls] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showPhoneModal, setShowPhoneModal] = useState(false);
+  const [user, setUser] = useState(null);
+
+  // Load user on component mount
+  React.useEffect(() => {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      setUser(JSON.parse(userData));
+    }
+  }, []);
 
   const handleChange = (e) => {
     setFormData({ 
@@ -60,6 +71,34 @@ const PostDonationPage = () => {
   };
 
   const nextStep = () => {
+    // Validate step 1
+    if (currentStep === 1) {
+      if (!formData.title || !formData.quantity) {
+        toast.error('Please fill in all required fields (Title and Quantity)');
+        return;
+      }
+      if (parseInt(formData.quantity) <= 0) {
+        toast.error('Quantity must be greater than 0');
+        return;
+      }
+    }
+    
+    // Validate step 2
+    if (currentStep === 2) {
+      if (!formData.lat || !formData.lng) {
+        toast.error('Please select a pickup location on the map');
+        return;
+      }
+      if (!formData.pickupDate || !formData.pickupTime) {
+        toast.error('Please select pickup date and time');
+        return;
+      }
+      if (!formData.expiryDate || !formData.expiryTime) {
+        toast.error('Please select expiry date and time');
+        return;
+      }
+    }
+    
     if (currentStep < 3) {
       setCurrentStep(currentStep + 1);
     }
@@ -71,12 +110,39 @@ const PostDonationPage = () => {
     }
   };
 
+  const MAX_PHOTOS = 10;
+
   const handleFilesSelected = (e) => {
     const files = Array.from(e.target.files || []);
+    
+    // Check if total files exceed limit
+    if (files.length > MAX_PHOTOS) {
+      toast.error(`You can only upload a maximum of ${MAX_PHOTOS} photos at once`);
+      e.target.value = ''; // Clear the file input
+      return;
+    }
+    
     setSelectedFiles(files);
     setUploadedUrls([]);
     const previews = files.map((file) => URL.createObjectURL(file));
     setPreviewUrls(previews);
+  };
+
+  const handleRemovePhoto = (index) => {
+    const newFiles = selectedFiles.filter((_, i) => i !== index);
+    const newPreviews = previewUrls.filter((_, i) => i !== index);
+    
+    // Revoke the URL to free memory
+    URL.revokeObjectURL(previewUrls[index]);
+    
+    setSelectedFiles(newFiles);
+    setPreviewUrls(newPreviews);
+    
+    // Also clear uploaded URLs if any
+    if (uploadedUrls.length > 0) {
+      const newUploadedUrls = uploadedUrls.filter((_, i) => i !== index);
+      setUploadedUrls(newUploadedUrls);
+    }
   };
 
   // Compute min values for date/time inputs to prevent past selections
@@ -101,6 +167,10 @@ const PostDonationPage = () => {
       toast.error("Please select images to upload");
       return;
     }
+    if (selectedFiles.length > MAX_PHOTOS) {
+      toast.error(`You can only upload a maximum of ${MAX_PHOTOS} photos`);
+      return;
+    }
     const token = localStorage.getItem("token");
     if (!token) {
       toast.error("You need to be logged in as a donor.");
@@ -109,7 +179,25 @@ const PostDonationPage = () => {
     try {
       setUploading(true);
       const form = new FormData();
-      selectedFiles.forEach((file) => form.append("images", file));
+      
+      // Validate each file before uploading
+      for (let file of selectedFiles) {
+        // Check file size (10MB limit)
+        if (file.size > 10 * 1024 * 1024) {
+          toast.error(`File "${file.name}" is too large. Maximum size is 10MB.`);
+          setUploading(false);
+          return;
+        }
+        // Check file type
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+        if (!allowedTypes.includes(file.type)) {
+          toast.error(`File "${file.name}" has invalid type. Only JPEG, PNG, WebP, and GIF are allowed.`);
+          setUploading(false);
+          return;
+        }
+        form.append("images", file);
+      }
+      
       const res = await axios.post(`${API_ENDPOINTS.UPLOADS.IMAGES}`, form, {
         headers: { 
           Authorization: `Bearer ${token}`
@@ -119,7 +207,9 @@ const PostDonationPage = () => {
       setUploadedUrls(urls);
       toast.success("Images uploaded successfully");
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to upload images");
+      console.error('Upload error:', err);
+      const errorMsg = err.response?.data?.message || "Failed to upload images";
+      toast.error(errorMsg);
     } finally {
       setUploading(false);
     }
@@ -127,6 +217,13 @@ const PostDonationPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Check if user has phone number
+    if (!user?.phoneNumber) {
+      setShowPhoneModal(true);
+      return;
+    }
+
     setLoading(true);
     setMessage("");
     setError("");
@@ -139,7 +236,7 @@ const PostDonationPage = () => {
         return;
       }
 
-      if (!formData.title || !formData.pickupAddress || !formData.quantity) {
+      if (!formData.title || !formData.quantity) {
         setError("Please fill in all required fields.");
         setLoading(false);
         return;
@@ -151,11 +248,21 @@ const PostDonationPage = () => {
         return;
       }
 
+      if (!formData.lat || !formData.lng) {
+        setError("Please select a pickup location on the map.");
+        toast.error("Please select a pickup location on the map");
+        setLoading(false);
+        return;
+      }
+
+      // Generate address from coordinates
+      const pickupAddress = formData.pickupAddress || `Location: ${parseFloat(formData.lat).toFixed(4)}, ${parseFloat(formData.lng).toFixed(4)}`;
+
       const donationData = {
         title: formData.title,
         description: formData.description,
         quantity: parseInt(formData.quantity),
-        pickupAddress: formData.pickupAddress,
+        pickupAddress: pickupAddress,
         pickupDateTime: `${formData.pickupDate}T${formData.pickupTime}`,
         expireDateTime: `${formData.expiryDate}T${formData.expiryTime}`,
         photos: uploadedUrls,
@@ -290,6 +397,11 @@ const PostDonationPage = () => {
 
                   <div className="space-y-2">
                     <label className="block text-sm font-bold text-gray-700">Upload Photos (Optional)</label>
+                    <div className="bg-blue-50 border-l-4 border-blue-400 rounded-xl p-3 mb-3">
+                      <p className="text-blue-800 text-xs font-medium">
+                        Maximum {MAX_PHOTOS} photos allowed per donation
+                      </p>
+                    </div>
                     <div className="border-2 border-dashed border-gray-300 rounded-2xl p-8 text-center hover:border-green-400 hover:bg-green-50/50 transition-all duration-300 cursor-pointer">
                       <Upload className="w-10 h-10 text-gray-400 mx-auto mb-3" />
                       <input
@@ -303,14 +415,22 @@ const PostDonationPage = () => {
                       />
                       <label htmlFor="photos" className="cursor-pointer">
                         <span className="text-sm text-gray-500 font-medium">Click to upload or drag and drop</span>
-                        <p className="text-xs text-gray-400 mt-1">PNG, JPG up to 10MB</p>
+                        <p className="text-xs text-gray-400 mt-1">PNG, JPG up to 10MB (Max {MAX_PHOTOS} photos)</p>
                       </label>
                     </div>
                     {previewUrls.length > 0 && (
                       <div className="grid grid-cols-3 gap-4 mt-4">
                         {previewUrls.map((src, idx) => (
-                          <div key={idx} className="relative w-full h-28 rounded-xl overflow-hidden border-2 border-gray-200 shadow-md">
+                          <div key={idx} className="relative w-full h-28 rounded-xl overflow-hidden border-2 border-gray-200 shadow-md group">
                             <img src={src} alt="preview" className="w-full h-full object-cover" />
+                            <button
+                              type="button"
+                              onClick={() => handleRemovePhoto(idx)}
+                              className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-600"
+                              title="Remove photo"
+                            >
+                              ×
+                            </button>
                           </div>
                         ))}
                       </div>
@@ -340,6 +460,19 @@ const PostDonationPage = () => {
                     <label className="block text-sm font-bold text-gray-700">
                       Select Pickup Location *
                     </label>
+                    {!formData.lat || !formData.lng ? (
+                      <div className="bg-yellow-50 border-l-4 border-yellow-400 rounded-xl p-4 mb-3">
+                        <p className="text-yellow-800 text-sm font-medium">
+                          ⚠️ Please select your pickup location on the map and click "Confirm Location" button
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="bg-green-50 border-l-4 border-green-400 rounded-xl p-4 mb-3">
+                        <p className="text-green-800 text-sm font-medium">
+                          ✓ Location confirmed: {parseFloat(formData.lat).toFixed(4)}, {parseFloat(formData.lng).toFixed(4)}
+                        </p>
+                      </div>
+                    )}
                     <LocationPicker
                       onLocationSelect={handleLocationSelect}
                       initialLat={formData.lat}
@@ -457,7 +590,7 @@ const PostDonationPage = () => {
                         Pickup Information
                       </h4>
                       <div className="text-sm text-gray-600 space-y-1">
-                        <p><strong>Address:</strong> {formData.pickupAddress}</p>
+                        <p><strong>Location:</strong> {formData.lat && formData.lng ? `${parseFloat(formData.lat).toFixed(4)}, ${parseFloat(formData.lng).toFixed(4)}` : 'Not selected'}</p>
                         <p><strong>Pickup:</strong> {formData.pickupDate} at {formData.pickupTime}</p>
                         <p><strong>Expiry:</strong> {formData.expiryDate} at {formData.expiryTime}</p>
                       </div>
@@ -567,6 +700,19 @@ const PostDonationPage = () => {
           </div>
         </div>
       )}
+
+      {/* Phone Number Modal */}
+      <PhoneNumberModal
+        isOpen={showPhoneModal}
+        onClose={() => setShowPhoneModal(false)}
+        onSuccess={() => {
+          // Reload user data
+          const userData = localStorage.getItem('user');
+          if (userData) {
+            setUser(JSON.parse(userData));
+          }
+        }}
+      />
     </>
   );
 };

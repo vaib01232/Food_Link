@@ -109,6 +109,92 @@ const sendVerificationEmail = async (email, name, verificationToken) => {
 };
 
 const sendPasswordResetEmail = async (email, name, resetToken) => {
+  try {
+    const transporter = createTransporter();
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}`;
+    
+    const mailOptions = {
+      from: `"Food Link" <${process.env.EMAIL_FROM || 'noreply@foodlink.com'}>`,
+      to: email,
+      subject: 'Password Reset Request - Food Link',
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+            .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
+            .button { display: inline-block; padding: 15px 30px; background: #10b981; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; }
+            .button:hover { background: #059669; }
+            .footer { text-align: center; margin-top: 20px; color: #6b7280; font-size: 12px; }
+            .warning { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0; border-radius: 4px; }
+            .security { background: #dbeafe; border-left: 4px solid #3b82f6; padding: 15px; margin: 20px 0; border-radius: 4px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>🔒 Password Reset Request</h1>
+            </div>
+            <div class="content">
+              <h2>Hi ${name},</h2>
+              <p>We received a request to reset the password for your Food Link account.</p>
+              
+              <p>To reset your password, please click the button below:</p>
+              
+              <div style="text-align: center;">
+                <a href="${resetUrl}" class="button">Reset Password</a>
+              </div>
+
+              <div class="warning">
+                <strong>⏰ Important:</strong> This password reset link will expire in 1 hour for security reasons.
+              </div>
+              
+              <div class="security">
+                <strong>🛡️ Security Notice:</strong> If you didn't request a password reset, please ignore this email. Your password will remain unchanged.
+              </div>
+              
+              <p>Best regards,<br><strong>The Food Link Team</strong></p>
+            </div>
+            <div class="footer">
+              <p>© 2025 Food Link. All rights reserved.</p>
+              <p>This is an automated email. Please do not reply.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+      text: `
+        Hi ${name},
+        
+        We received a request to reset the password for your Food Link account.
+        
+        To reset your password, please visit:
+        ${resetUrl}
+        
+        This link will expire in 1 hour.
+        
+        If you didn't request a password reset, please ignore this email.
+        
+        Best regards,
+        The Food Link Team
+      `
+    };
+
+    if (transporter) {
+      const info = await transporter.sendMail(mailOptions);
+      return { success: true, messageId: info.messageId };
+    } else {
+      console.log('Password reset email (dev mode):', resetUrl);
+      return { success: true, messageId: 'dev-mode', resetUrl };
+    }
+  } catch (error) {
+    console.error('Error sending password reset email:', error);
+    throw error;
+  }
 };
 
 const sendDonationNotificationEmail = async (email, name, donationDetails) => {

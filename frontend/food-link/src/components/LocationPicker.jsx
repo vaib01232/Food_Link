@@ -170,9 +170,11 @@ const LocationPicker = ({
           {markerPosition && (
             <Marker
               position={markerPosition}
-              animation={window.google?.maps?.Animation?.DROP}
               draggable={true}
               onDragEnd={onMarkerDragEnd}
+              options={{
+                animation: window.google?.maps?.Animation?.DROP
+              }}
             />
           )}
         </GoogleMap>

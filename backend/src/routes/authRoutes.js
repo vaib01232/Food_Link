@@ -1,6 +1,15 @@
 const express = require('express');
-const { registerUser, loginUser, verifyEmail, resendVerificationEmail } = require('../controllers/authController');
+const { 
+    registerUser, 
+    loginUser, 
+    verifyEmail, 
+    resendVerificationEmail,
+    forgotPassword,
+    resetPassword,
+    updatePhone
+} = require('../controllers/authController');
 const { body } = require('express-validator');
+const authMiddleware = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
@@ -39,6 +48,37 @@ router.post(
         body('email').isEmail().withMessage('Valid email is required').normalizeEmail()
     ],
     resendVerificationEmail
+);
+
+// Forgot password endpoint
+router.post(
+    '/forgot-password',
+    [
+        body('email').isEmail().withMessage('Valid email is required').normalizeEmail()
+    ],
+    forgotPassword
+);
+
+// Reset password endpoint
+router.post(
+    '/reset-password',
+    [
+        body('token').notEmpty().withMessage('Reset token is required'),
+        body('newPassword')
+            .isLength({ min: 6 })
+            .withMessage('Password must be at least 6 characters')
+    ],
+    resetPassword
+);
+
+// Update phone number endpoint (requires authentication)
+router.post(
+    '/update-phone',
+    authMiddleware,
+    [
+        body('phoneNumber').isMobilePhone().withMessage('Invalid phone number')
+    ],
+    updatePhone
 );
 
 module.exports = router;

@@ -6,6 +6,8 @@ import LandingPage from './components/LandingPage.jsx';
 import RegisterPage from './components/RegisterPage.jsx';
 import LoginPage from './components/LoginPage.jsx';
 import EmailVerificationPage from './components/EmailVerificationPage.jsx';
+import ForgotPasswordPage from './components/ForgotPasswordPage.jsx';
+import ResetPasswordPage from './components/ResetPasswordPage.jsx';
 import Dashboard from './components/Dashboard.jsx';
 import PostDonationPage from './components/PostDonation.jsx';
 import GetDonationsPage from './components/GetDonation.jsx';
@@ -125,6 +127,18 @@ const App = () => {
             <EmailVerificationPage 
               setUser={setUser}
             />
+          } 
+        />
+        <Route 
+          path="/forgot-password" 
+          element={
+            <ForgotPasswordPage />
+          } 
+        />
+        <Route 
+          path="/reset-password" 
+          element={
+            <ResetPasswordPage />
           } 
         />
         

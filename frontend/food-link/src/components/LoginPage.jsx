@@ -143,7 +143,16 @@ const LoginPage = ({ setUser }) => {
             </button>
           </form>
 
-          <p className="text-center text-gray-600 mt-8">
+          <div className="mt-6 text-center">
+            <button 
+              onClick={() => navigate('/forgot-password')}
+              className="text-sm text-green-600 font-bold hover:text-green-700 hover:underline transition-all duration-300"
+            >
+              Forgot Password?
+            </button>
+          </div>
+
+          <p className="text-center text-gray-600 mt-6">
             Don't have an account?{' '}
             <button 
               onClick={() => navigate('/register')}

@@ -1,10 +1,11 @@
 const User = require('../models/userModel');
 const VerificationToken = require('../models/verificationTokenModel');
+const PasswordResetToken = require('../models/passwordResetTokenModel');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { validationResult } = require('express-validator');
-const { sendVerificationEmail } = require('../services/emailService');
+const { sendVerificationEmail, sendPasswordResetEmail } = require('../services/emailService');
 
 const registerUser = async (req, res) => {
     const errors = validationResult(req);
@@ -275,4 +276,185 @@ const resendVerificationEmail = async (req, res) => {
     }
 };
 
-module.exports = { registerUser, loginUser, verifyEmail, resendVerificationEmail };
+// Forgot Password - Send reset email
+const forgotPassword = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({
+            success: false,
+            message: 'Validation failed',
+            errors: errors.array()
+        });
+    }
+
+    const { email } = req.body;
+
+    try {
+        const user = await User.findOne({ email });
+        if (!user) {
+            // For security, don't reveal if email exists or not
+            return res.json({
+                success: true,
+                message: 'If an account with that email exists, a password reset link has been sent.'
+            });
+        }
+
+        // Delete any existing reset tokens for this user
+        await PasswordResetToken.deleteMany({ userId: user._id });
+
+        // Generate reset token
+        const resetToken = crypto.randomBytes(32).toString('hex');
+
+        // Save token to database
+        const tokenDoc = new PasswordResetToken({
+            userId: user._id,
+            token: resetToken,
+            expiresAt: new Date(Date.now() + 60 * 60 * 1000) // 1 hour
+        });
+        await tokenDoc.save();
+
+        // Send email
+        try {
+            await sendPasswordResetEmail(email, user.name, resetToken);
+            res.json({
+                success: true,
+                message: 'If an account with that email exists, a password reset link has been sent.'
+            });
+        } catch (emailError) {
+            console.error('Email error:', emailError);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to send reset email. Please try again later.'
+            });
+        }
+
+    } catch (error) {
+        console.error('Forgot password error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+};
+
+// Reset Password - Update password with token
+const resetPassword = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({
+            success: false,
+            message: 'Validation failed',
+            errors: errors.array()
+        });
+    }
+
+    const { token, newPassword } = req.body;
+
+    try {
+        // Find valid token
+        const tokenDoc = await PasswordResetToken.findOne({
+            token,
+            expiresAt: { $gt: new Date() }
+        });
+
+        if (!tokenDoc) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid or expired reset token'
+            });
+        }
+
+        // Find user
+        const user = await User.findById(tokenDoc.userId);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        // Hash new password
+        const salt = await bcrypt.genSalt(10);
+        const passwordHash = await bcrypt.hash(newPassword, salt);
+
+        // Update password
+        user.passwordHash = passwordHash;
+        await user.save();
+
+        // Delete used token
+        await PasswordResetToken.deleteOne({ _id: tokenDoc._id });
+
+        res.json({
+            success: true,
+            message: 'Password reset successful! You can now login with your new password.'
+        });
+
+    } catch (error) {
+        console.error('Reset password error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+};
+
+// Update Phone Number
+const updatePhone = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({
+            success: false,
+            message: 'Validation failed',
+            errors: errors.array()
+        });
+    }
+
+    const { phoneNumber } = req.body;
+    const userId = req.user.id; // From authMiddleware
+
+    try {
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        user.phoneNumber = phoneNumber;
+        await user.save();
+
+        res.json({
+            success: true,
+            message: 'Phone number updated successfully',
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                phoneNumber: user.phoneNumber,
+                isEmailVerified: user.isEmailVerified
+            }
+        });
+
+    } catch (error) {
+        console.error('Update phone error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+};
+
+module.exports = { 
+    registerUser, 
+    loginUser, 
+    verifyEmail, 
+    resendVerificationEmail,
+    forgotPassword,
+    resetPassword,
+    updatePhone
+};
