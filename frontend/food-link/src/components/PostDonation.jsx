@@ -335,26 +335,10 @@ const PostDonationPage = () => {
               {/* Step 2: Pickup Information */}
               {currentStep === 2 && (
                 <div className="space-y-6">
-                  <div className="space-y-2">
-                    <label className="block text-sm font-bold text-gray-700">Pickup Address *</label>
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
-                      <textarea
-                        name="pickupAddress"
-                        placeholder="Enter full address including street, city, state, and zip code"
-                        value={formData.pickupAddress}
-                        onChange={handleChange}
-                        rows={3}
-                        className="w-full pl-10 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-4 focus:ring-green-100 outline-none transition-all duration-300 resize-none"
-                        required
-                      />
-                    </div>
-                  </div>
-
                   {/* Location Picker */}
                   <div className="space-y-2">
                     <label className="block text-sm font-bold text-gray-700">
-                      Pin Pickup Location on Map *
+                      Select Pickup Location *
                     </label>
                     <LocationPicker
                       onLocationSelect={handleLocationSelect}
