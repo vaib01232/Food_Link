@@ -19,10 +19,17 @@ export const API_ENDPOINTS = {
     CONFIRM_PICKUP: (id) => `${API_BASE_URL}/donations/${id}/confirm-pickup`,
     CANCEL_CLAIM: (id) => `${API_BASE_URL}/donations/${id}/cancel-claim`,
     CLAIMED: `${API_BASE_URL}/donations/claimed`,
+    DELETE: (id) => `${API_BASE_URL}/donations/${id}`,
   },
   UPLOADS: {
     IMAGES: `${API_BASE_URL}/uploads/images`,
     IMAGE: `${API_BASE_URL}/uploads/image`,
+  },
+  NOTIFICATIONS: {
+    BASE: `${API_BASE_URL}/notifications`,
+    UNREAD_COUNT: `${API_BASE_URL}/notifications/unread-count`,
+    MARK_READ: (id) => `${API_BASE_URL}/notifications/${id}/read`,
+    MARK_ALL_READ: `${API_BASE_URL}/notifications/mark-all-read`,
   },
 };
 

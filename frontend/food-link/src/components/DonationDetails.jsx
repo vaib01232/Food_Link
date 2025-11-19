@@ -239,7 +239,14 @@ const DonationDetails = ({ user }) => {
             {/* Header */}
             <div>
               <div className="flex items-start justify-between mb-4">
-                <h1 className="text-4xl font-bold text-green-900">{donation.title}</h1>
+                <div>
+                  <h1 className="text-4xl font-bold text-green-900 mb-2">{donation.title}</h1>
+                  {donation.donationId && (
+                    <p className="text-sm text-gray-500 font-mono">
+                      ID: {donation.donationId}
+                    </p>
+                  )}
+                </div>
                 {getStatusBadge(donation.status)}
               </div>
               

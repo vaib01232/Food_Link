@@ -1,5 +1,5 @@
 const express = require("express");
-const  { createDonation, getDonations, claimDonation, getClaimedDonations, getDonationById, confirmPickup, cancelClaim } = require("../controllers/donationController");
+const  { createDonation, getDonations, claimDonation, getClaimedDonations, getDonationById, confirmPickup, cancelClaim, deleteDonation } = require("../controllers/donationController");
 const authMiddleware = require("../middleware/authMiddleware");
 const authRoles = require("../middleware/authRoles");
 
@@ -36,6 +36,7 @@ router.get("/claimed", authMiddleware, authRoles('ngo'), getClaimedDonations);
 router.patch("/:id/claim", authMiddleware, authRoles('ngo'), claimDonation);
 router.patch("/:id/confirm-pickup", authMiddleware, authRoles('ngo'), confirmPickup);
 router.patch("/:id/cancel-claim", authMiddleware, authRoles('ngo'), cancelClaim);
+router.delete("/:id", authMiddleware, authRoles('donor'), deleteDonation);
 // Parameterized route should come last
 router.get("/:id", optionalAuth, getDonationById);
 

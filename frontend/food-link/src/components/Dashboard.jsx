@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart, Plus, Eye, Package, Users, MapPin, Calendar } from 'lucide-react';
+import { Heart, Plus, Eye, Package, Users, MapPin, Calendar, Trash2 } from 'lucide-react';
 import axios from 'axios';
-import { API_ENDPOINTS } from '../config/api';
+import { API_ENDPOINTS, BACKEND_BASE_URL } from '../config/api';
 import toast from 'react-hot-toast';
 
 const Dashboard = ({ user }) => {
@@ -19,6 +19,9 @@ const Dashboard = ({ user }) => {
     availableNearby: 0
   });
   const [loading, setLoading] = useState(true);
+  const [donations, setDonations] = useState([]);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletingDonationId, setDeletingDonationId] = useState(null);
 
   const fetchStats = async () => {
     try {
@@ -29,6 +32,7 @@ const Dashboard = ({ user }) => {
         });
         
         const allDonations = response.data.data || response.data || [];
+        setDonations(allDonations);
         
         setStats({
           totalDonations: allDonations.length,
@@ -63,6 +67,36 @@ const Dashboard = ({ user }) => {
     }
   };
 
+  const handleDeleteClick = (donationId, e) => {
+    e.stopPropagation();
+    setDeletingDonationId(donationId);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(API_ENDPOINTS.DONATIONS.DELETE(deletingDonationId), {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      toast.success('Donation deleted successfully');
+      setShowDeleteModal(false);
+      setDeletingDonationId(null);
+      
+      // Refresh donations
+      fetchStats();
+    } catch (error) {
+      console.error('Error deleting donation:', error);
+      toast.error(error.response?.data?.message || 'Failed to delete donation');
+    }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setDeletingDonationId(null);
+  };
+
   useEffect(() => {
     fetchStats();
   }, [user.role]);
@@ -80,7 +114,8 @@ const Dashboard = ({ user }) => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    <>
+      <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         {/* Welcome Section */}
         <div className="mb-10 animate-fadeInUp">
           <h1 className="text-5xl font-bold text-green-900 mb-3">
@@ -187,7 +222,7 @@ const Dashboard = ({ user }) => {
         </div>
 
         {/* Profile Info */}
-        <div className="bg-white p-8 rounded-3xl shadow-2xl border-2 border-gray-100">
+        <div className="bg-white p-8 rounded-3xl shadow-2xl border-2 border-gray-100 mb-10">
           <h2 className="text-3xl font-bold text-green-900 mb-6">Profile Information</h2>
           <div className="grid md:grid-cols-2 gap-8">
             <div>
@@ -210,7 +245,125 @@ const Dashboard = ({ user }) => {
             </div>
           </div>
         </div>
-    </div>
+
+        {/* Donor's Donations List */}
+        {user.role === 'donor' && donations.length > 0 && (
+          <div className="mb-10">
+            <h2 className="text-3xl font-bold text-green-900 mb-6">Your Donations</h2>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {donations.map((donation) => (
+                <div
+                  key={donation._id}
+                  className="bg-white rounded-3xl shadow-2xl overflow-hidden hover:shadow-[0_20px_50px_rgba(0,0,0,0.15)] hover:scale-[1.02] transition-all duration-300 cursor-pointer border-2 border-gray-100"
+                  onClick={() => navigate(`/donation/${donation._id}`)}
+                >
+                  <div className={`h-3 ${
+                    donation.status === 'available' ? 'bg-gradient-to-r from-green-400 to-green-500' :
+                    donation.status === 'reserved' ? 'bg-gradient-to-r from-yellow-400 to-yellow-500' :
+                    'bg-gradient-to-r from-gray-400 to-gray-500'
+                  }`}></div>
+                  
+                  {/* Image */}
+                  {donation.photos && donation.photos.length > 0 && (
+                    <div className="relative h-48 overflow-hidden">
+                      <img
+                        src={`${BACKEND_BASE_URL}${donation.photos[0]}`}
+                        alt={donation.title}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold">
+                        {donation.donationId || 'No ID'}
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div className="p-6">
+                    <div className="mb-4">
+                      <h3 className="text-xl font-bold text-green-900 mb-2">{donation.title}</h3>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className={`text-xs font-semibold px-3 py-1 rounded-full ${
+                          donation.status === 'available' ? 'bg-green-100 text-green-800' :
+                          donation.status === 'reserved' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {donation.status.charAt(0).toUpperCase() + donation.status.slice(1)}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 text-sm text-gray-600 mb-4">
+                      <p className="flex items-center gap-2">
+                        <Package className="w-4 h-4" />
+                        Quantity: {donation.quantity}
+                      </p>
+                      <p className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4" />
+                        Pickup: {new Date(donation.pickupDateTime).toLocaleDateString()}
+                      </p>
+                      <p className="flex items-center gap-2">
+                        <MapPin className="w-4 h-4" />
+                        {donation.pickupAddress}
+                      </p>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/donation/${donation._id}`);
+                        }}
+                        className="flex-1 bg-green-600 text-white py-2.5 px-4 rounded-xl font-bold hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+                      >
+                        <Eye className="w-4 h-4" />
+                        View
+                      </button>
+                      <button
+                        onClick={(e) => handleDeleteClick(donation._id, e)}
+                        className="bg-red-500 text-white py-2.5 px-4 rounded-xl font-bold hover:bg-red-600 transition-colors flex items-center justify-center"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl animate-fadeInUp">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Trash2 className="w-8 h-8 text-red-600" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">Delete Donation?</h3>
+              <p className="text-gray-600">
+                Are you sure you want to delete this donation? This action cannot be undone.
+              </p>
+            </div>
+            <div className="flex gap-4">
+              <button
+                onClick={cancelDelete}
+                className="flex-1 bg-gray-100 text-gray-700 py-3 px-6 rounded-xl font-bold hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="flex-1 bg-red-500 text-white py-3 px-6 rounded-xl font-bold hover:bg-red-600 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

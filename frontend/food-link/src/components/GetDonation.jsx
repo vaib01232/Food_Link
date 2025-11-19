@@ -144,6 +144,11 @@ const GetDonationsPage = ({ user: userProp }) => {
                         <Users className="w-4 h-4" />
                         {donation.donorId?.name || donation.donor?.name || "Anonymous"}
                       </p>
+                      {donation.donationId && (
+                        <p className="text-gray-500 text-xs mt-1">
+                          ID: {donation.donationId}
+                        </p>
+                      )}
                     </div>
                     {donation.status === 'reserved' && (
                       <span className="bg-yellow-100 text-yellow-800 text-xs font-semibold px-3 py-1 rounded-full">

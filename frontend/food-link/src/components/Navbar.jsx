@@ -1,11 +1,38 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Heart, LogOut } from 'lucide-react';
+import { Heart, LogOut, Bell } from 'lucide-react';
+import axios from 'axios';
 import toast from 'react-hot-toast';
+import { API_ENDPOINTS } from '../config/api';
 
 const Navbar = ({ user, setUser, currentPage }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [unreadCount, setUnreadCount] = useState(0);
+  
+  // Fetch unread notifications count
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      
+      try {
+        const response = await axios.get(API_ENDPOINTS.NOTIFICATIONS.UNREAD_COUNT, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (response.data.success) {
+          setUnreadCount(response.data.unreadCount);
+        }
+      } catch (error) {
+        console.error('Error fetching unread count:', error);
+      }
+    };
+
+    fetchUnreadCount();
+    // Poll every 30 seconds for new notifications
+    const interval = setInterval(fetchUnreadCount, 30000);
+    return () => clearInterval(interval);
+  }, []);
   
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -85,6 +112,19 @@ const Navbar = ({ user, setUser, currentPage }) => {
           
           {/* User Info & Logout */}
           <div className="flex items-center space-x-2 md:space-x-4">
+            {/* Notifications Bell */}
+            <button
+              onClick={() => handleNavigation('notifications')}
+              className="relative p-2 rounded-xl hover:bg-green-50 transition-all duration-300"
+            >
+              <Bell className={`w-5 h-5 md:w-6 md:h-6 ${isActive('notifications') ? 'text-green-600' : 'text-gray-600'}`} />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </button>
+            
             <div className="hidden md:block text-right">
               <p className="text-sm text-gray-600 font-medium">Welcome back,</p>
               <p className="font-bold text-green-800">{user.name}</p>
