@@ -18,7 +18,6 @@ const RegisterPage = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    phoneNumber: '',
     password: '',
     confirmPassword: ''
   });
@@ -48,7 +47,6 @@ const RegisterPage = () => {
       const response = await axios.post(API_ENDPOINTS.AUTH.REGISTER, {
         name: formData.name,
         email: formData.email,
-        phoneNumber: formData.phoneNumber,
         password: formData.password,
         role: userRole
       });
@@ -144,18 +142,6 @@ const RegisterPage = () => {
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 focus:border-green-500 focus:ring-4 focus:ring-green-100 outline-none transition-all duration-300 text-gray-900"
                   placeholder="your@email.com"
-                  required
-                />
-              </div>
-
-              <div className="mb-5">
-                <label className="block text-sm font-bold text-gray-700 mb-2">Phone Number</label>
-                <input 
-                  type="tel" 
-                  value={formData.phoneNumber}
-                  onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
-                  className="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 focus:border-green-500 focus:ring-4 focus:ring-green-100 outline-none transition-all duration-300 text-gray-900"
-                  placeholder="+1 (555) 123-4567"
                   required
                 />
               </div>

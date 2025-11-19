@@ -60,14 +60,14 @@ router.post("/image", authMiddleware, authRoles('donor'), (req, res) => {
 
 // Upload multiple images
 router.post("/images", authMiddleware, authRoles('donor'), (req, res) => {
-  upload.array("images", 5)(req, res, (err) => {
+  upload.array("images", 10)(req, res, (err) => {
     if (err) {
       if (err instanceof multer.MulterError) {
         if (err.code === 'LIMIT_FILE_SIZE') {
           return res.status(400).json({ message: "File size too large. Maximum 10MB per file." });
         }
         if (err.code === 'LIMIT_FILE_COUNT') {
-          return res.status(400).json({ message: "Too many files. Maximum 5 files allowed." });
+          return res.status(400).json({ message: "Too many files. Maximum 10 files allowed." });
         }
         return res.status(400).json({ message: `Upload error: ${err.message}` });
       }
