@@ -114,8 +114,98 @@ const sendPasswordResetEmail = async (email, name, resetToken) => {
 const sendDonationNotificationEmail = async (email, name, donationDetails) => {
 };
 
+const sendContactEmail = async (name, email, message) => {
+  try {
+    const transporter = createTransporter();
+    const adminEmail = process.env.EMAIL_USER || 'foodlink.service.info@gmail.com';
+    
+    const mailOptions = {
+      from: `"Food Link Contact" <${process.env.EMAIL_FROM || 'noreply@foodlink.com'}>`,
+      to: adminEmail,
+      replyTo: email,
+      subject: `New Contact Form Submission from ${name}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+            .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
+            .info-box { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10b981; }
+            .message-box { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #e5e7eb; }
+            .label { font-weight: bold; color: #059669; margin-bottom: 5px; }
+            .footer { text-align: center; margin-top: 20px; color: #6b7280; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>📧 New Contact Form Submission</h1>
+            </div>
+            <div class="content">
+              <p>You have received a new message through the Food Link contact form.</p>
+              
+              <div class="info-box">
+                <div class="label">From:</div>
+                <p><strong>${name}</strong></p>
+                
+                <div class="label">Email:</div>
+                <p><a href="mailto:${email}">${email}</a></p>
+                
+                <div class="label">Submitted:</div>
+                <p>${new Date().toLocaleString()}</p>
+              </div>
+              
+              <div class="message-box">
+                <div class="label">Message:</div>
+                <p>${message.replace(/\n/g, '<br>')}</p>
+              </div>
+              
+              <p style="margin-top: 30px; color: #6b7280; font-size: 14px;">
+                💡 You can reply directly to this email to respond to ${name}.
+              </p>
+            </div>
+            <div class="footer">
+              <p>© 2025 Food Link. All rights reserved.</p>
+              <p>This is an automated notification from your Food Link contact form.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+      text: `
+        New Contact Form Submission
+        
+        From: ${name}
+        Email: ${email}
+        Date: ${new Date().toLocaleString()}
+        
+        Message:
+        ${message}
+        
+        ---
+        You can reply directly to this email to respond to ${name}.
+      `
+    };
+
+    if (transporter) {
+      const info = await transporter.sendMail(mailOptions);
+      return { success: true, messageId: info.messageId };
+    } else {
+      console.log('Contact form submission (dev mode):', { name, email, message });
+      return { success: true, messageId: 'dev-mode' };
+    }
+  } catch (error) {
+    console.error('Error sending contact email:', error);
+    throw error;
+  }
+};
+
 module.exports = {
   sendVerificationEmail,
   sendPasswordResetEmail,
-  sendDonationNotificationEmail
+  sendDonationNotificationEmail,
+  sendContactEmail
 };
