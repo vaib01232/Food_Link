@@ -200,6 +200,141 @@ const sendPasswordResetEmail = async (email, name, resetToken) => {
 const sendDonationNotificationEmail = async (email, name, donationDetails) => {
 };
 
+const sendDonationClaimEmail = async (ngoEmail, ngoName, donationDetails) => {
+  try {
+    const transporter = createTransporter();
+    const { donationId, donationTitle, donorName, donorEmail, donorPhone, donorAddress, pickupDateTime } = donationDetails;
+    
+    const mailOptions = {
+      from: `"Food Link" <${process.env.EMAIL_FROM || 'noreply@foodlink.com'}>`,
+      to: ngoEmail,
+      subject: `Donation Claim Details — ${donationId}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+            .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
+            .info-box { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10b981; }
+            .detail-row { margin: 15px 0; padding: 10px 0; border-bottom: 1px solid #e5e7eb; }
+            .detail-row:last-child { border-bottom: none; }
+            .label { font-weight: bold; color: #059669; margin-bottom: 5px; }
+            .value { color: #1f2937; }
+            .highlight { background: #d1fae5; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: center; }
+            .footer { text-align: center; margin-top: 20px; color: #6b7280; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>🎉 Donation Claimed Successfully</h1>
+            </div>
+            <div class="content">
+              <p>Hi ${ngoName},</p>
+              <p>You have successfully claimed a donation. Below are the details you need to arrange the pickup.</p>
+              
+              <div class="highlight">
+                <strong>Donation ID:</strong> ${donationId}
+              </div>
+              
+              <div class="info-box">
+                <div class="detail-row">
+                  <div class="label">Donation Title:</div>
+                  <div class="value">${donationTitle}</div>
+                </div>
+                
+                <div class="detail-row">
+                  <div class="label">Donor Name:</div>
+                  <div class="value">${donorName}</div>
+                </div>
+                
+                <div class="detail-row">
+                  <div class="label">Donor Email:</div>
+                  <div class="value"><a href="mailto:${donorEmail}">${donorEmail}</a></div>
+                </div>
+                
+                <div class="detail-row">
+                  <div class="label">Donor Phone:</div>
+                  <div class="value">${donorPhone}</div>
+                </div>
+                
+                <div class="detail-row">
+                  <div class="label">Pickup Address:</div>
+                  <div class="value">${donorAddress}</div>
+                </div>
+                
+                <div class="detail-row">
+                  <div class="label">Pickup Date & Time:</div>
+                  <div class="value">${new Date(pickupDateTime).toLocaleString()}</div>
+                </div>
+              </div>
+              
+              <p><strong>Next Steps:</strong></p>
+              <ul>
+                <li>Contact the donor to confirm pickup arrangements</li>
+                <li>Arrive at the specified location on time</li>
+                <li>Confirm pickup in the system after collection</li>
+              </ul>
+              
+              <p>Thank you for your commitment to reducing food waste!</p>
+              
+              <p>Best regards,<br><strong>The Food Link Team</strong></p>
+            </div>
+            <div class="footer">
+              <p>© 2025 Food Link. All rights reserved.</p>
+              <p>This is an automated email. Please do not reply.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+      text: `
+        Donation Claimed Successfully
+        
+        Hi ${ngoName},
+        
+        You have successfully claimed a donation. Below are the details:
+        
+        Donation ID: ${donationId}
+        Donation Title: ${donationTitle}
+        
+        Donor Information:
+        - Name: ${donorName}
+        - Email: ${donorEmail}
+        - Phone: ${donorPhone}
+        - Address: ${donorAddress}
+        
+        Pickup Date & Time: ${new Date(pickupDateTime).toLocaleString()}
+        
+        Next Steps:
+        - Contact the donor to confirm pickup arrangements
+        - Arrive at the specified location on time
+        - Confirm pickup in the system after collection
+        
+        Thank you for your commitment to reducing food waste!
+        
+        Best regards,
+        The Food Link Team
+      `
+    };
+
+    if (transporter) {
+      const info = await transporter.sendMail(mailOptions);
+      console.log('Donation claim email sent:', info.messageId);
+      return { success: true, messageId: info.messageId };
+    } else {
+      console.log('Donation claim email (dev mode):', { ngoEmail, ngoName, donationId });
+      return { success: true, messageId: 'dev-mode' };
+    }
+  } catch (error) {
+    console.error('Error sending donation claim email:', error);
+    throw error;
+  }
+};
+
 const sendContactEmail = async (name, email, message) => {
   try {
     const transporter = createTransporter();
@@ -293,5 +428,6 @@ module.exports = {
   sendVerificationEmail,
   sendPasswordResetEmail,
   sendDonationNotificationEmail,
+  sendDonationClaimEmail,
   sendContactEmail
 };

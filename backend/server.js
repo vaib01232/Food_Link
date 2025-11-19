@@ -18,6 +18,7 @@ const donationRoutes = require('./src/routes/donationRoutes');
 const uploadRoutes = require('./src/routes/uploadRoutes');
 const adminRoutes = require('./src/routes/adminRoutes');
 const contactRoutes = require('./src/routes/contactRoutes');
+const notificationRoutes = require('./src/routes/notificationRoutes');
 const { removeExpiredDonations, markExpiredDonations, removeOldExpiredDonations } = require('./src/services/cleanupService');
 const path = require('path');
 
@@ -67,6 +68,7 @@ app.use('/api/donations', apiLimiter, donationRoutes);
 app.use('/api/uploads', apiLimiter, uploadRoutes);
 app.use('/api/admin', apiLimiter, adminRoutes);
 app.use('/api/contact', apiLimiter, contactRoutes);
+app.use('/api/notifications', apiLimiter, notificationRoutes);
 
 // Serve uploads statically
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));

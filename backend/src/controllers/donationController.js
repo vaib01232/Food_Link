@@ -1,4 +1,7 @@
 const Donation = require("../models/donationModel");
+const Notification = require("../models/notificationModel");
+const User = require("../models/userModel");
+const { sendDonationClaimEmail } = require("../services/emailService");
 
 const createDonation = async (req, res) => {
     try {
@@ -151,6 +154,43 @@ const claimDonation = async (req, res) => {
                 success: false,
                 message: "Donation not found or already claimed" 
             });
+        }
+
+        // Create notification for donor
+        try {
+            const ngoUser = await User.findById(req.user.id).select('name');
+            await Notification.create({
+                userId: donation.donorId._id,
+                message: `NGO "${ngoUser.name}" has claimed your donation (${donation.donationId}). They will contact you soon.`,
+                type: 'donation_claimed',
+                donationId: donation.donationId,
+                metadata: {
+                    ngoName: ngoUser.name,
+                    donationTitle: donation.title
+                }
+            });
+        } catch (notifErr) {
+            console.error('Failed to create notification:', notifErr);
+        }
+
+        // Send email to NGO with donor details
+        try {
+            const ngoUser = await User.findById(req.user.id);
+            await sendDonationClaimEmail(
+                ngoUser.email,
+                ngoUser.name,
+                {
+                    donationId: donation.donationId,
+                    donationTitle: donation.title,
+                    donorName: donation.donorId.name,
+                    donorEmail: donation.donorId.email,
+                    donorPhone: donation.donorId.phoneNumber || 'Not provided',
+                    donorAddress: donation.donorId.address || donation.pickupAddress,
+                    pickupDateTime: donation.pickupDateTime
+                }
+            );
+        } catch (emailErr) {
+            console.error('Failed to send claim email to NGO:', emailErr);
         }
 
         res.json({ 
@@ -363,4 +403,66 @@ const cancelClaim = async (req, res) => {
     }
 };
 
-module.exports = { createDonation, getDonations, claimDonation, getClaimedDonations, getDonationById, confirmPickup, cancelClaim };
+const deleteDonation = async (req, res) => {
+    try {
+        if (!req.user || !req.user.id) {
+            return res.status(401).json({ 
+                success: false,
+                message: 'Unauthorized' 
+            });
+        }
+
+        const donation = await Donation.findById(req.params.id);
+        
+        if (!donation) {
+            return res.status(404).json({ 
+                success: false,
+                message: "Donation not found" 
+            });
+        }
+
+        // Check if the user is the donor
+        if (donation.donorId.toString() !== req.user.id) {
+            return res.status(403).json({ 
+                success: false,
+                message: 'You can only delete your own donations' 
+            });
+        }
+
+        const donationId = donation.donationId;
+        const donationTitle = donation.title;
+
+        // If donation was claimed, notify the NGO
+        if (donation.reservedBy) {
+            try {
+                await Notification.create({
+                    userId: donation.reservedBy,
+                    message: `Donation ${donationId} has been deleted by the donor.`,
+                    type: 'donation_deleted',
+                    donationId: donationId,
+                    metadata: {
+                        donationTitle: donationTitle
+                    }
+                });
+            } catch (notifErr) {
+                console.error('Failed to create notification for NGO:', notifErr);
+            }
+        }
+
+        // Delete the donation
+        await Donation.findByIdAndDelete(req.params.id);
+
+        res.json({ 
+            success: true,
+            message: "Donation deleted successfully"
+        });
+    } catch (err) {
+        res.status(500).json({ 
+            success: false,
+            message: "Server error", 
+            error: err.message 
+        });
+    }
+};
+
+module.exports = { createDonation, getDonations, claimDonation, getClaimedDonations, getDonationById, confirmPickup, cancelClaim, deleteDonation };

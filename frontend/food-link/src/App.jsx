@@ -12,6 +12,7 @@ import Dashboard from './components/Dashboard.jsx';
 import PostDonationPage from './components/PostDonation.jsx';
 import GetDonationsPage from './components/GetDonation.jsx';
 import DonationDetails from './components/DonationDetails.jsx';
+import NotificationsPage from './components/NotificationsPage.jsx';
 import AuthenticatedLayout from './components/AuthenticatedLayout.jsx';
 
 const App = () => {
@@ -202,6 +203,18 @@ const App = () => {
                   <GetDonationsPage 
                     user={user}
                   />
+                </AuthenticatedLayout>
+              } 
+            />
+            <Route 
+              path="/notifications" 
+              element={
+                <AuthenticatedLayout 
+                  user={user} 
+                  setUser={setUser}
+                  currentPage={currentPage}
+                >
+                  <NotificationsPage />
                 </AuthenticatedLayout>
               } 
             />
