@@ -128,12 +128,6 @@ const LoginPage = ({ setUser }) => {
               </div>
             )}
 
-            <div className="mb-6 text-right">
-              <a href="#" className="text-green-600 hover:text-green-700 text-sm font-semibold hover:underline transition-all duration-300">
-                Forgot Password?
-              </a>
-            </div>
-
             <button 
               type="submit"
               disabled={loading}
