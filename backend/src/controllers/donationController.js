@@ -92,6 +92,7 @@ const getDonations = async (req, res) => {
             });
         }
         
+        // For NGOs and unauthenticated users: only return available donations
         const [donations, total] = await Promise.all([
             Donation.find({ status: "available" })
                 .populate("donorId", "name email phoneNumber address")

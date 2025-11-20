@@ -26,9 +26,17 @@ const GetDonationsPage = ({ user: userProp }) => {
   const refetchDonations = async () => {
     setLoading(true);
     try{
-      const res = await axios.get(API_ENDPOINTS.DONATIONS.BASE);
+      const token = localStorage.getItem('token');
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const res = await axios.get(API_ENDPOINTS.DONATIONS.BASE, { headers });
       const donationsData = res.data.data || res.data;
-      setDonations(Array.isArray(donationsData) ? donationsData : []);
+      
+      // Filter to only show available (unclaimed) donations
+      const availableOnly = Array.isArray(donationsData) 
+        ? donationsData.filter(d => d.status === 'available')
+        : [];
+      
+      setDonations(availableOnly);
       setError("");
     } catch (error) {
       setError("Failed to load donations. Please try again.");
@@ -60,6 +68,10 @@ const GetDonationsPage = ({ user: userProp }) => {
     }
 
     await processClaim(donationId);
+  };
+
+  const isClaimedByCurrentUser = (donation) => {
+    return donation.reservedBy?._id === user?._id || donation.reservedBy === user?._id;
   };
 
   const processClaim = async (donationId) => {
@@ -150,11 +162,6 @@ const GetDonationsPage = ({ user: userProp }) => {
                         </p>
                       )}
                     </div>
-                    {donation.status === 'reserved' && (
-                      <span className="bg-yellow-100 text-yellow-800 text-xs font-semibold px-3 py-1 rounded-full">
-                        Claimed
-                      </span>
-                    )}
                   </div>
 
                   {/* Photos */}
@@ -229,7 +236,7 @@ const GetDonationsPage = ({ user: userProp }) => {
                       <Eye className="w-5 h-5" />
                       View Details
                     </button>
-                    {donation.status === 'available' && user && user.role === 'ngo' && (
+                    {user && user.role === 'ngo' && (
                       <button
                         onClick={(e) => handleClaim(donation._id, e)}
                         className="flex-1 py-4 rounded-xl font-bold transition-all duration-300 bg-gradient-to-r from-green-600 to-green-700 text-white hover:shadow-2xl hover:scale-105"
@@ -238,15 +245,6 @@ const GetDonationsPage = ({ user: userProp }) => {
                       </button>
                     )}
                   </div>
-                  {donation.status !== 'available' && (
-                    <div className={`w-full py-4 rounded-xl font-bold text-center ${
-                      donation.status === 'reserved' 
-                        ? "bg-yellow-100 border-2 border-yellow-300 text-yellow-800" 
-                        : "bg-gray-200 border-2 border-gray-300 text-gray-500"
-                    }`}>
-                      {donation.status === 'reserved' ? "Already Claimed" : "Unavailable"}
-                    </div>
-                  )}
                 </div>
               </div>
             ))

@@ -31,8 +31,8 @@ app.use(helmet({
 
 // Rate limiting for authentication routes
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 requests per window
+  windowMs: 30 * 60 * 1000, // 30 minutes
+  max: 20, // 20 requests per window
   message: 'Too many authentication attempts, please try again later',
   standardHeaders: false,
   legacyHeaders: false,

@@ -131,6 +131,19 @@ const DonationDetails = ({ user }) => {
   };
 
   const getStatusBadge = (status) => {
+    // Check if donation was claimed but not collected and has expired
+    const isClaimedButNotCollected = status === 'reserved' && 
+      donation?.expireDateTime && 
+      new Date(donation.expireDateTime) < new Date();
+
+    if (isClaimedButNotCollected) {
+      return (
+        <span className="px-3 py-1 rounded-full text-sm font-semibold bg-orange-100 text-orange-800">
+          Claimed but Not Collected
+        </span>
+      );
+    }
+
     const statusConfig = {
       available: { bg: 'bg-green-100', text: 'text-green-800', label: 'Available' },
       reserved: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Claimed' },
@@ -573,6 +586,14 @@ const DonationDetails = ({ user }) => {
                     </p>
                   </div>
                 )}
+
+                {donation.status === 'reserved' && isClaimedByCurrentUser && donation.expireDateTime && new Date(donation.expireDateTime) < new Date() && (
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <p className="text-orange-800 font-medium text-center">
+                      This donation has expired. Please contact the donor to arrange pickup or cancel your claim.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
@@ -583,7 +604,9 @@ const DonationDetails = ({ user }) => {
                 <div className="space-y-2">
                   <p className="text-gray-700">
                     {donation.status === 'available' && 'This donation is available for claim.'}
-                    {donation.status === 'reserved' && 'This donation has been claimed.'}
+                    {donation.status === 'reserved' && !donation.expireDateTime && 'This donation has been claimed.'}
+                    {donation.status === 'reserved' && donation.expireDateTime && new Date(donation.expireDateTime) >= new Date() && 'This donation has been claimed.'}
+                    {donation.status === 'reserved' && donation.expireDateTime && new Date(donation.expireDateTime) < new Date() && 'This donation was claimed but not collected by the NGO.'}
                     {donation.status === 'collected' && 'This donation has been collected.'}
                     {donation.status === 'expired' && 'This donation has expired.'}
                     {donation.status === 'cancelled' && 'This donation has been cancelled.'}

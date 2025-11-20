@@ -20,6 +20,7 @@ const Dashboard = ({ user }) => {
   });
   const [loading, setLoading] = useState(true);
   const [donations, setDonations] = useState([]);
+  const [claimedDonations, setClaimedDonations] = useState([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletingDonationId, setDeletingDonationId] = useState(null);
 
@@ -38,15 +39,22 @@ const Dashboard = ({ user }) => {
         );
         setDonations(activeDonations);
         
+        // Count claimed as reserved OR collected
+        const claimedCount = allDonations.filter(d => 
+          d.status === 'reserved' || d.status === 'collected'
+        ).length;
+        
         setStats({
           totalDonations: allDonations.length,
           activeDonations: activeDonations.length,
-          claimedDonations: allDonations.filter(d => d.status === 'reserved' || d.status === 'collected').length,
+          claimedDonations: claimedCount,
           availableNearby: 0
         });
       } else if (user.role === 'ngo') {
         const [availableResponse, claimedResponse] = await Promise.all([
-          axios.get(API_ENDPOINTS.DONATIONS.BASE),
+          axios.get(API_ENDPOINTS.DONATIONS.BASE, {
+            headers: { Authorization: `Bearer ${token}` }
+          }),
           axios.get(API_ENDPOINTS.DONATIONS.CLAIMED, {
             headers: { Authorization: `Bearer ${token}` }
           }).catch(() => ({ data: { data: [] } }))
@@ -57,10 +65,15 @@ const Dashboard = ({ user }) => {
         
         const availableDonations = availableData.filter(d => d.status === 'available');
         
+        // Only show donations that are reserved (claimed) but NOT yet collected
+        const activeClaimedDonations = claimedData.filter(d => d.status === 'reserved');
+        
+        setClaimedDonations(activeClaimedDonations);
+        
         setStats({
           totalDonations: 0,
           activeDonations: 0,
-          claimedDonations: claimedData.length,
+          claimedDonations: activeClaimedDonations.length,
           availableNearby: availableDonations.length
         });
       }
@@ -325,6 +338,80 @@ const Dashboard = ({ user }) => {
                   className="mt-4 text-sm font-medium text-green-700 hover:text-green-800"
                 >
                   Create a donation
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* NGO's Claimed Donations List */}
+        {user.role === 'ngo' && (
+          <div className="mb-10">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">My Claimed Donations</h2>
+            {claimedDonations.length > 0 ? (
+              <div className="bg-white rounded-lg border border-gray-200 divide-y divide-gray-100">
+                {claimedDonations.map((donation) => (
+                  <div
+                    key={donation._id}
+                    className="p-4 hover:bg-gray-50 transition-colors cursor-pointer group"
+                    onClick={() => navigate(`/donation/${donation._id}`)}
+                  >
+                    <div className="flex items-center justify-between gap-4">
+                      {/* Left Section - Main Info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3 mb-2">
+                          <span className="text-xs font-mono text-gray-500 flex items-center gap-1">
+                            <Tag className="w-3 h-3" strokeWidth={2} />
+                            {donation.donationId || 'N/A'}
+                          </span>
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                            Claimed by You
+                          </span>
+                        </div>
+                        <h3 className="text-base font-semibold text-gray-900 mb-1 truncate">
+                          {donation.title}
+                        </h3>
+                        <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600">
+                          <span className="flex items-center gap-1">
+                            <MapPin className="w-3.5 h-3.5" strokeWidth={2} />
+                            {donation.pickupAddress && donation.pickupAddress.length > 30 
+                              ? donation.pickupAddress.substring(0, 30) + '...' 
+                              : donation.pickupAddress}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3.5 h-3.5" strokeWidth={2} />
+                            Claimed: {new Date(donation.reservedAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Right Section - Actions */}
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/donation/${donation._id}`);
+                          }}
+                          className="px-3 py-1.5 text-sm font-medium text-green-700 hover:text-green-800 hover:bg-green-50 rounded transition-colors flex items-center gap-1"
+                        >
+                          <Eye className="w-4 h-4" strokeWidth={2} />
+                          View Details
+                        </button>
+                        <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors" strokeWidth={2} />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
+                <Package className="w-12 h-12 text-gray-400 mx-auto mb-3" strokeWidth={1.5} />
+                <p className="text-gray-600">No claimed donations yet</p>
+                <button
+                  onClick={() => navigate('/getDonations')}
+                  className="mt-4 text-sm font-medium text-green-700 hover:text-green-800"
+                >
+                  Browse available donations
                 </button>
               </div>
             )}
