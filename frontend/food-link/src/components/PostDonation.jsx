@@ -701,8 +701,8 @@ const PostDonationPage = () => {
         </div>
       )}
 
-      {/* Phone Number Modal */}
-      <PhoneNumberModal
+      {/* Phone Verification Modal */}
+      <PhoneVerificationModal
         isOpen={showPhoneModal}
         onClose={() => setShowPhoneModal(false)}
         onSuccess={() => {

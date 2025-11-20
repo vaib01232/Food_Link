@@ -11,6 +11,7 @@ export const API_ENDPOINTS = {
     FORGOT_PASSWORD: `${API_BASE_URL}/auth/forgot-password`,
     RESET_PASSWORD: `${API_BASE_URL}/auth/reset-password`,
     UPDATE_PHONE: `${API_BASE_URL}/auth/update-phone`,
+    VERIFY_PHONE: `${API_BASE_URL}/auth/verify-phone`,
   },
   DONATIONS: {
     BASE: `${API_BASE_URL}/donations`,

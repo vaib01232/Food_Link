@@ -6,6 +6,7 @@ const userSchema = new mongoose.Schema({
     passwordHash: { type: String, required: true },
     role: { type: String, enum: ['donor', 'ngo', 'admin'], required: true},
     phoneNumber: { type: String },
+    isPhoneVerified: { type: Boolean, default: false },
     address: { type: String },
     profilePhotoURL: { type: String },
     verificationStatus: { type: String, enum: ['pending', 'verified', 'rejected'], default: 'pending' },

@@ -6,7 +6,8 @@ const {
     resendVerificationEmail,
     forgotPassword,
     resetPassword,
-    updatePhone
+    updatePhone,
+    verifyPhoneNumber
 } = require('../controllers/authController');
 const { body } = require('express-validator');
 const authMiddleware = require('../middleware/authMiddleware');
@@ -79,6 +80,17 @@ router.post(
         body('phoneNumber').isMobilePhone().withMessage('Invalid phone number')
     ],
     updatePhone
+);
+
+// Verify phone number endpoint (requires authentication)
+// Firebase handles OTP verification on frontend, this just saves the verified number
+router.post(
+    '/verify-phone',
+    authMiddleware,
+    [
+        body('phoneNumber').notEmpty().withMessage('Phone number is required')
+    ],
+    verifyPhoneNumber
 );
 
 module.exports = router;
