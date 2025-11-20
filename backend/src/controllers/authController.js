@@ -449,6 +449,53 @@ const updatePhone = async (req, res) => {
     }
 };
 
+const verifyPhoneNumber = async (req, res) => {
+    try {
+        const { phoneNumber } = req.body;
+
+        if (!phoneNumber) {
+            return res.status(400).json({
+                success: false,
+                message: 'Phone number is required'
+            });
+        }
+
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        // Firebase has already verified the phone number on the client side
+        // We just need to save it and mark as verified
+        user.phoneNumber = phoneNumber;
+        user.isPhoneVerified = true;
+        await user.save();
+
+        res.json({
+            success: true,
+            message: 'Phone number verified and saved successfully',
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                phoneNumber: user.phoneNumber,
+                isPhoneVerified: user.isPhoneVerified
+            }
+        });
+    } catch (error) {
+        console.error('Verify phone error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+};
+
 module.exports = { 
     registerUser, 
     loginUser, 
@@ -456,5 +503,6 @@ module.exports = {
     resendVerificationEmail,
     forgotPassword,
     resetPassword,
-    updatePhone
+    updatePhone,
+    verifyPhoneNumber
 };

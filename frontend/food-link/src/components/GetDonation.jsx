@@ -4,7 +4,7 @@ import { Heart, Users, Clock, MapPin, Calendar, Eye } from 'lucide-react';
 import axios from 'axios';
 import { API_ENDPOINTS, BACKEND_BASE_URL } from '../config/api';
 import toast from 'react-hot-toast';
-import PhoneNumberModal from './PhoneNumberModal';
+import PhoneVerificationModal from './PhoneVerificationModal';
 
 const GetDonationsPage = ({ user: userProp }) => {
   const navigate = useNavigate();
@@ -252,8 +252,8 @@ const GetDonationsPage = ({ user: userProp }) => {
         </div>
       </div>
 
-      {/* Phone Number Modal */}
-      <PhoneNumberModal
+      {/* Phone Verification Modal */}
+      <PhoneVerificationModal
         isOpen={showPhoneModal}
         onClose={() => {
           setShowPhoneModal(false);
