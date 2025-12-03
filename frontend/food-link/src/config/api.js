@@ -1,6 +1,6 @@
 // API Configuration
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
-const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL || 'http://localhost:3000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://food-link-1h58.onrender.com/api';
+const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL || 'https://food-link-1h58.onrender.com';
 
 export const API_ENDPOINTS = {
   AUTH: {
