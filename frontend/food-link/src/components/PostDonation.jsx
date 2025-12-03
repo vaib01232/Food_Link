@@ -17,7 +17,7 @@ import { API_ENDPOINTS, BACKEND_BASE_URL } from '../config/api';
 import { GOOGLE_MAPS_API_KEY } from '../config/maps';
 import toast from 'react-hot-toast';
 import LocationPicker from './LocationPicker';
-import PhoneNumberModal from './PhoneNumberModal';
+import PhoneVerificationModal from './PhoneVerificationModal';
 
 const PostDonationPage = () => {
   const navigate = useNavigate();
@@ -207,7 +207,6 @@ const PostDonationPage = () => {
       setUploadedUrls(urls);
       toast.success("Images uploaded successfully");
     } catch (err) {
-      console.error('Upload error:', err);
       const errorMsg = err.response?.data?.message || "Failed to upload images";
       toast.error(errorMsg);
     } finally {

@@ -33,7 +33,6 @@ const NotificationsPage = () => {
         setUnreadCount(response.data.unreadCount || 0);
       }
     } catch (error) {
-      console.error("Error fetching notifications:", error);
       toast.error(error.response?.data?.message || "Failed to load notifications");
     } finally {
       setLoading(false);
@@ -55,7 +54,6 @@ const NotificationsPage = () => {
       );
       setUnreadCount((prev) => Math.max(0, prev - 1));
     } catch (error) {
-      console.error("Error marking notification as read:", error);
     }
   };
 
@@ -73,7 +71,6 @@ const NotificationsPage = () => {
       setUnreadCount(0);
       toast.success("All notifications marked as read");
     } catch (error) {
-      console.error("Error marking all as read:", error);
       toast.error("Failed to mark all as read");
     }
   };

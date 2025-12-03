@@ -92,7 +92,6 @@ const getDonations = async (req, res) => {
             });
         }
         
-        // For NGOs and unauthenticated users: only return available donations
         const [donations, total] = await Promise.all([
             Donation.find({ status: "available" })
                 .populate("donorId", "name email phoneNumber address")
@@ -130,34 +129,39 @@ const claimDonation = async (req, res) => {
             });
         }
 
-        const donation = await Donation.findOneAndUpdate(
-            { 
-                _id: req.params.id,
-                status: 'available'
-            },
-            {
-                $set: {
-                    status: 'reserved',
-                    reservedBy: req.user.id,
-                    reservedAt: new Date()
-                }
-            },
-            { 
-                new: true,
-                runValidators: true
-            }
-        )
-        .populate("reservedBy", "name email")
-        .populate("donorId", "name email phoneNumber address");
-
+        const donation = await Donation.findById(req.params.id);
+        
         if(!donation) {
             return res.status(404).json({ 
                 success: false,
-                message: "Donation not found or already claimed" 
+                message: "Donation not found" 
             });
         }
 
-        // Create notification for donor
+        if(donation.status !== 'available') {
+            return res.status(400).json({ 
+                success: false,
+                message: "Donation not available or already claimed" 
+            });
+        }
+
+        if(new Date() > new Date(donation.expireDateTime)) {
+            donation.status = 'expired';
+            await donation.save();
+            return res.status(400).json({ 
+                success: false,
+                message: "Donation has expired" 
+            });
+        }
+
+        donation.status = 'reserved';
+        donation.reservedBy = req.user.id;
+        donation.reservedAt = new Date();
+        await donation.save();
+
+        await donation.populate("reservedBy", "name email");
+        await donation.populate("donorId", "name email phoneNumber address");
+
         try {
             const ngoUser = await User.findById(req.user.id).select('name');
             await Notification.create({
@@ -171,10 +175,8 @@ const claimDonation = async (req, res) => {
                 }
             });
         } catch (notifErr) {
-            console.error('Failed to create notification:', notifErr);
         }
 
-        // Send email to NGO with donor details
         try {
             const ngoUser = await User.findById(req.user.id);
             await sendDonationClaimEmail(
@@ -192,7 +194,6 @@ const claimDonation = async (req, res) => {
                 }
             );
         } catch (emailErr) {
-            console.error('Failed to send claim email to NGO:', emailErr);
         }
 
         res.json({ 
@@ -391,7 +392,6 @@ const cancelClaim = async (req, res) => {
 
         await donation.populate("donorId", "name email phoneNumber address");
 
-        // Create notification for donor about unclaim
         try {
             await Notification.create({
                 userId: donation.donorId._id,
@@ -403,7 +403,6 @@ const cancelClaim = async (req, res) => {
                 }
             });
         } catch (notifErr) {
-            console.error('Failed to create unclaim notification for donor:', notifErr);
         }
 
         res.json({ 
@@ -438,7 +437,6 @@ const deleteDonation = async (req, res) => {
             });
         }
 
-        // Check if the user is the donor
         if (donation.donorId.toString() !== req.user.id) {
             return res.status(403).json({ 
                 success: false,
@@ -449,7 +447,6 @@ const deleteDonation = async (req, res) => {
         const donationId = donation.donationId;
         const donationTitle = donation.title;
 
-        // If donation was claimed, notify the NGO
         if (donation.reservedBy) {
             try {
                 await Notification.create({
@@ -462,11 +459,9 @@ const deleteDonation = async (req, res) => {
                     }
                 });
             } catch (notifErr) {
-                console.error('Failed to create notification for NGO:', notifErr);
             }
         }
 
-        // Delete the donation
         await Donation.findByIdAndDelete(req.params.id);
 
         res.json({ 

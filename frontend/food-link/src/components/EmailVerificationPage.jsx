@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Heart, CheckCircle, XCircle, Loader } from 'lucide-react';
+import { Heart, CheckCircle, XCircle, Loader, ArrowRight } from 'lucide-react';
 import axios from 'axios';
 import { API_ENDPOINTS } from '../config/api';
 import toast from 'react-hot-toast';
 
-const EmailVerificationPage = ({ setUser }) => {
+const EmailVerificationPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [status, setStatus] = useState('verifying');
@@ -31,33 +31,43 @@ const EmailVerificationPage = ({ setUser }) => {
       setStatus('verifying');
       const response = await axios.get(`${API_ENDPOINTS.AUTH.VERIFY_EMAIL}?token=${token}`);
       
-      setStatus('success');
-      setMessage(response.data.message);
-      
-      if (response.data.autoLogin && response.data.token) {
-        const { token: loginToken, user } = response.data;
-        localStorage.setItem('token', loginToken);
-        localStorage.setItem('user', JSON.stringify(user));
-        axios.defaults.headers.common['Authorization'] = `Bearer ${loginToken}`;
+      if (response.status === 200) {
+        setStatus('success');
         
-        if (setUser) {
-          setUser(user);
+        if (response.data && typeof response.data === 'object') {
+          if (response.data.success === true || response.data.status === 'success' || response.data.verified === true) {
+            setMessage(response.data.message || 'Your email has been successfully verified.');
+          } else if (response.data.message) {
+            setMessage(response.data.message);
+          } else {
+            setMessage('Your email has been successfully verified.');
+          }
+        } else if (typeof response.data === 'string') {
+          setMessage(response.data);
+        } else {
+          setMessage('Your email has been successfully verified.');
         }
-        
-        toast.success('Email verified! Redirecting to dashboard...');
-        
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 2000);
+      } else {
+        throw new Error('Unexpected response status');
       }
     } catch (error) {
       setStatus('error');
       
-      if (error.response?.data?.expired) {
-        setIsExpired(true);
-        setMessage('Your verification link has expired. Please request a new one.');
+      if (error.response) {
+        if (error.response.data?.expired === true) {
+          setIsExpired(true);
+          setMessage(error.response.data?.message || 'Your verification link has expired. Please request a new one.');
+        } else if (error.response.data?.message === 'Email is already verified') {
+          setMessage('This email has already been verified.');
+        } else if (error.response.data?.message) {
+          setMessage(error.response.data.message);
+        } else {
+          setMessage('Verification failed. Invalid or expired link.');
+        }
+      } else if (error.request) {
+        setMessage('Unable to connect to the server. Please check your internet connection.');
       } else {
-        setMessage(error.response?.data?.message || 'Verification failed. The link may be invalid or expired.');
+        setMessage('Verification failed. Invalid or expired link.');
       }
     }
   };
@@ -111,24 +121,24 @@ const EmailVerificationPage = ({ setUser }) => {
 
           {status === 'success' && (
             <div className="text-center">
-              <div className="w-20 h-20 bg-gradient-to-br from-green-100 to-green-200 rounded-full flex items-center justify-center mx-auto mb-6">
+              <div className="w-20 h-20 bg-gradient-to-br from-green-100 to-green-200 rounded-full flex items-center justify-center mx-auto mb-6 animate-scaleIn">
                 <CheckCircle className="w-10 h-10 text-green-600" />
               </div>
               <h2 className="text-3xl font-bold text-green-900 mb-3">Email Verified!</h2>
-              <p className="text-gray-600 mb-6 text-lg">{message}</p>
+              <p className="text-gray-600 mb-8 text-lg">{message}</p>
               
-              <div className="bg-gradient-to-r from-green-50 to-green-100 border-2 border-green-200 rounded-2xl p-5 mb-6">
-                <p className="text-sm text-green-800 font-medium space-y-1">
-                  <span className="block">✓ Your account is now active</span>
-                  <span className="block">✓ You're being redirected to your dashboard...</span>
+              <div className="bg-gradient-to-r from-green-50 to-green-100 border-2 border-green-200 rounded-2xl p-5 mb-8">
+                <p className="text-sm text-green-800 font-medium">
+                  ✓ Your account is now active
                 </p>
               </div>
 
               <button
-                onClick={() => navigate('/dashboard')}
-                className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-4 rounded-xl font-bold hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 text-lg"
+                onClick={() => navigate('/login')}
+                className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-4 rounded-xl font-bold hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 text-lg flex items-center justify-center gap-2"
               >
-                Go to Dashboard
+                Go to Login
+                <ArrowRight className="w-5 h-5" />
               </button>
             </div>
           )}

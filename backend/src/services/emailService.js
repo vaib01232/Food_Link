@@ -188,11 +188,9 @@ const sendPasswordResetEmail = async (email, name, resetToken) => {
       const info = await transporter.sendMail(mailOptions);
       return { success: true, messageId: info.messageId };
     } else {
-      console.log('Password reset email (dev mode):', resetUrl);
       return { success: true, messageId: 'dev-mode', resetUrl };
     }
   } catch (error) {
-    console.error('Error sending password reset email:', error);
     throw error;
   }
 };
@@ -205,7 +203,6 @@ const sendDonationClaimEmail = async (ngoEmail, ngoName, donationDetails) => {
     const transporter = createTransporter();
     const { donationId, donationTitle, donorName, donorEmail, donorPhone, donorAddress, pickupDateTime, pickupGeo } = donationDetails;
     
-    // Create Google Maps link
     const googleMapsLink = pickupGeo && pickupGeo.lat && pickupGeo.lng 
       ? `https://www.google.com/maps?q=${pickupGeo.lat},${pickupGeo.lng}`
       : null;
@@ -335,14 +332,11 @@ const sendDonationClaimEmail = async (ngoEmail, ngoName, donationDetails) => {
 
     if (transporter) {
       const info = await transporter.sendMail(mailOptions);
-      console.log('Donation claim email sent:', info.messageId);
       return { success: true, messageId: info.messageId };
     } else {
-      console.log('Donation claim email (dev mode):', { ngoEmail, ngoName, donationId });
       return { success: true, messageId: 'dev-mode' };
     }
   } catch (error) {
-    console.error('Error sending donation claim email:', error);
     throw error;
   }
 };
@@ -427,11 +421,9 @@ const sendContactEmail = async (name, email, message) => {
       const info = await transporter.sendMail(mailOptions);
       return { success: true, messageId: info.messageId };
     } else {
-      console.log('Contact form submission (dev mode):', { name, email, message });
       return { success: true, messageId: 'dev-mode' };
     }
   } catch (error) {
-    console.error('Error sending contact email:', error);
     throw error;
   }
 };

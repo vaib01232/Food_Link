@@ -4,17 +4,8 @@ const { removeExpiredDonations, markExpiredDonations, removeOldExpiredDonations 
 
 const router = express.Router();
 
-/**
- * Manual cleanup endpoint for testing or admin use
- * POST /api/admin/cleanup
- */
 router.post('/cleanup', authMiddleware, async (req, res) => {
   try {
-    // Optional: Add role check for admin users
-    // if (req.user.role !== 'admin') {
-    //   return res.status(403).json({ message: 'Admin access required' });
-    // }
-
     const { mode = 'delete', oldDays = 7 } = req.body;
 
     let result;
@@ -37,15 +28,10 @@ router.post('/cleanup', authMiddleware, async (req, res) => {
       result
     });
   } catch (err) {
-    console.error('Manual cleanup error:', err);
     res.status(500).json({ message: 'Cleanup failed', error: err.message });
   }
 });
 
-/**
- * Get cleanup service status
- * GET /api/admin/cleanup/status
- */
 router.get('/cleanup/status', authMiddleware, async (req, res) => {
   try {
     const Donation = require('../models/donationModel');
@@ -81,7 +67,6 @@ router.get('/cleanup/status', authMiddleware, async (req, res) => {
       }
     });
   } catch (err) {
-    console.error('Status check error:', err);
     res.status(500).json({ message: 'Failed to get status', error: err.message });
   }
 });
