@@ -475,7 +475,7 @@ const PostDonationPage = () => {
                       onLocationSelect={handleLocationSelect}
                       initialLat={formData.lat}
                       initialLng={formData.lng}
-                      apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}
+                      apiKey={import.meta.env.VITE_GOOGLE_MAPS_API}
                     />
                   </div>
 
