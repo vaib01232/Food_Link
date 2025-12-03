@@ -1,23 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { X, Phone, Loader, CheckCircle, AlertCircle } from 'lucide-react';
-import { RecaptchaVerifier, signInWithPhoneNumber, getAuth } from 'firebase/auth';
-import { initializeApp } from 'firebase/app';
+import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
+import { auth } from '../config/firebase';
 import axios from 'axios';
 import { API_ENDPOINTS } from '../config/api';
 import toast from 'react-hot-toast';
-
-const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
 
 const PhoneVerificationModal = ({ isOpen, onClose, onSuccess }) => {
   const [step, setStep] = useState('phone'); // 'phone' | 'otp' | 'success'
