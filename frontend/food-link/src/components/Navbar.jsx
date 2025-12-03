@@ -10,7 +10,6 @@ const Navbar = ({ user, setUser, currentPage }) => {
   const location = useLocation();
   const [unreadCount, setUnreadCount] = useState(0);
   
-  // Fetch unread notifications count
   useEffect(() => {
     const fetchUnreadCount = async () => {
       const token = localStorage.getItem('token');
@@ -24,12 +23,10 @@ const Navbar = ({ user, setUser, currentPage }) => {
           setUnreadCount(response.data.unreadCount);
         }
       } catch (error) {
-        console.error('Error fetching unread count:', error);
       }
     };
 
     fetchUnreadCount();
-    // Poll every 30 seconds for new notifications
     const interval = setInterval(fetchUnreadCount, 30000);
     return () => clearInterval(interval);
   }, []);
@@ -76,7 +73,6 @@ const Navbar = ({ user, setUser, currentPage }) => {
         </div>
         
         <div className="flex items-center space-x-2 md:space-x-6">
-          {/* Navigation Items */}
           <nav className="hidden md:flex space-x-4">
             {navItems.map((item) => (
               <button
@@ -93,7 +89,6 @@ const Navbar = ({ user, setUser, currentPage }) => {
             ))}
           </nav>
           
-          {/* Mobile Navigation */}
           <nav className="md:hidden flex space-x-2">
             {navItems.map((item) => (
               <button
@@ -110,9 +105,7 @@ const Navbar = ({ user, setUser, currentPage }) => {
             ))}
           </nav>
           
-          {/* User Info & Logout */}
           <div className="flex items-center space-x-2 md:space-x-4">
-            {/* Notifications Bell */}
             <button
               onClick={() => handleNavigation('notifications')}
               className="relative p-2 rounded-xl hover:bg-green-50 transition-all duration-300"

@@ -21,7 +21,6 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(true);
   const location = useLocation();
 
-  // Check for existing session on app load
   useEffect(() => {
     const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
@@ -31,7 +30,6 @@ const App = () => {
         const parsedUser = JSON.parse(userData);
         setUser(parsedUser);
         
-        // Set axios default header
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       } catch (error) {
         localStorage.removeItem('token');
@@ -41,7 +39,6 @@ const App = () => {
     setIsLoading(false);
   }, []);
 
-  // Update currentPage based on route
   useEffect(() => {
     const path = location.pathname;
     if (path === '/') {
@@ -61,7 +58,6 @@ const App = () => {
     }
   }, [location]);
 
-  // Show loading spinner while checking session
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-green-50 to-yellow-50 flex items-center justify-center">
@@ -101,7 +97,6 @@ const App = () => {
       />
       
       <Routes>
-        {/* Public Routes */}
         <Route 
           path="/" 
           element={
@@ -143,7 +138,6 @@ const App = () => {
           } 
         />
         
-        {/* Donation Details - Accessible to all (with or without auth) */}
         <Route 
           path="/donation/:id" 
           element={
@@ -163,7 +157,6 @@ const App = () => {
           } 
         />
         
-        {/* Authenticated Routes */}
         {user && (
           <>
             <Route 

@@ -104,7 +104,6 @@ const Dashboard = ({ user }) => {
       // Refresh donations
       fetchStats();
     } catch (error) {
-      console.error('Error deleting donation:', error);
       toast.error(error.response?.data?.message || 'Failed to delete donation');
     }
   };

@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 
-// Function to generate unique donation ID
 const generateDonationId = () => {
     const timestamp = Date.now();
     const random = Math.floor(1000 + Math.random() * 9000); // 4-digit random number
@@ -31,14 +30,12 @@ const donationSchema = new mongoose.Schema({
     photos: [String]
 }, { timestamps: true });
 
-// Indexes for better query performance
 donationSchema.index({ status: 1, expireDateTime: 1 });
 donationSchema.index({ donorId: 1, createdAt: -1 });
 donationSchema.index({ reservedBy: 1 });
 donationSchema.index({ pickupDateTime: 1 });
 donationSchema.index({ 'pickupGeo.lat': 1, 'pickupGeo.lng': 1 });
 
-// Pre-save middleware to generate donation ID
 donationSchema.pre('save', function(next) {
     if (!this.donationId) {
         this.donationId = generateDonationId();

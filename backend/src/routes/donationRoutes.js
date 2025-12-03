@@ -3,7 +3,6 @@ const  { createDonation, getDonations, claimDonation, getClaimedDonations, getDo
 const authMiddleware = require("../middleware/authMiddleware");
 const authRoles = require("../middleware/authRoles");
 
-// Optional auth middleware - doesn't fail if no token
 const optionalAuth = async (req, res, next) => {
     const token = req.header("Authorization")?.replace("Bearer ", "");
     if (token) {
@@ -21,7 +20,6 @@ const optionalAuth = async (req, res, next) => {
                 };
             }
         } catch (err) {
-            // Token invalid or expired, continue without user
         }
     }
     next();
@@ -31,13 +29,11 @@ const router = express.Router();
 
 router.post("/", authMiddleware, authRoles('donor'), createDonation);
 router.get("/", optionalAuth, getDonations);
-// Specific routes must come before parameterized routes
 router.get("/claimed", authMiddleware, authRoles('ngo'), getClaimedDonations);
 router.patch("/:id/claim", authMiddleware, authRoles('ngo'), claimDonation);
 router.patch("/:id/confirm-pickup", authMiddleware, authRoles('ngo'), confirmPickup);
 router.patch("/:id/cancel-claim", authMiddleware, authRoles('ngo'), cancelClaim);
 router.delete("/:id", authMiddleware, authRoles('donor'), deleteDonation);
-// Parameterized route should come last
 router.get("/:id", optionalAuth, getDonationById);
 
 module.exports = router;
