@@ -11,10 +11,9 @@ node_modules
 dist
 dist-ssr
 *.local
-maps.js
-firebase.js
-api.js
 .env
+.env.local
+.env.production
 
 # Editor directories and files
 .vscode/*
