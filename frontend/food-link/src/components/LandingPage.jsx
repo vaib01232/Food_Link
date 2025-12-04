@@ -264,7 +264,7 @@ const LandingPage = () => {
       <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         isScrolled ? 'glass-effect shadow-lg py-3' : 'bg-white/80 backdrop-blur-sm shadow-sm py-4'
       }`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+        <div className="w-[100%] sm:px-6 lg:px-8 flex justify-between items-center">
           <div className="flex items-center space-x-3 group cursor-pointer" onClick={() => navigate('/')}>
             <Heart className="w-9 h-9 text-green-600 group-hover:scale-110 transition-transform duration-300" />
             <span className="text-2xl font-bold gradient-text">Food Link</span>
@@ -301,7 +301,7 @@ const LandingPage = () => {
               srcSet="https://images.unsplash.com/photo-1593113598332-cd288d649433?w=1200&h=1000&fit=crop&q=80" 
             />
             <img 
-              src="https://images.unsplash.com/photo-1593113598332-cd288d649433?w=1920&h=1080&fit=crop&q=85" 
+              src="https://i.pinimg.com/1200x/99/60/68/9960681df11d36bac0f356d887751f52.jpg" 
               alt="Food donation community" 
               className="w-full h-full object-cover object-center"
               loading="eager"
@@ -392,7 +392,7 @@ const LandingPage = () => {
                   <Upload className="w-12 h-12 text-green-600" />
                 </div>
               </div>
-              <div className="bg-green-600 text-white w-8 h-8 rounded-full flex items-center justify-center mx-auto mb-4 font-bold">1</div>
+              {/* <div className="bg-green-600 text-white w-8 h-8 rounded-full flex items-center justify-center mx-auto mb-4 font-bold">1</div> */}
               <h3 className="text-2xl font-bold text-green-800 mb-3">Create Alert</h3>
               <p className="text-gray-600 leading-relaxed">Donors post available surplus food with details and pickup information in seconds.</p>
             </div>
@@ -404,7 +404,7 @@ const LandingPage = () => {
                   <Clock className="w-12 h-12 text-yellow-600" />
                 </div>
               </div>
-              <div className="bg-yellow-600 text-white w-8 h-8 rounded-full flex items-center justify-center mx-auto mb-4 font-bold">2</div>
+              {/* <div className="bg-yellow-600 text-white w-8 h-8 rounded-full flex items-center justify-center mx-auto mb-4 font-bold">2</div> */}
               <h3 className="text-2xl font-bold text-green-800 mb-3">Real-Time Matching</h3>
               <p className="text-gray-600 leading-relaxed">NGOs see available donations instantly and can browse by location and quantity.</p>
             </div>
@@ -416,7 +416,7 @@ const LandingPage = () => {
                   <CheckCircle className="w-12 h-12 text-green-600" />
                 </div>
               </div>
-              <div className="bg-green-600 text-white w-8 h-8 rounded-full flex items-center justify-center mx-auto mb-4 font-bold">3</div>
+              {/* <div className="bg-green-600 text-white w-8 h-8 rounded-full flex items-center justify-center mx-auto mb-4 font-bold">3</div> */}
               <h3 className="text-2xl font-bold text-green-800 mb-3">Claim & Deliver</h3>
               <p className="text-gray-600 leading-relaxed">Food is claimed quickly and delivered efficiently to those in need.</p>
             </div>
@@ -626,10 +626,11 @@ const LandingPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
             <div className="md:col-span-2 animate-fadeInUp">
               <div className="flex items-center space-x-3 mb-6 group">
-                <div className="bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-2xl p-3 group-hover:scale-110 transition-transform duration-300">
-                  <Utensils className="w-8 h-8 text-green-900" />
-                </div>
-                <span className="text-3xl font-bold gradient-text bg-gradient-to-r from-white to-green-100 bg-clip-text text-transparent">Food Link</span>
+                {/* <div className="bg-gradient-to-br from-white to-gray-100 rounded-2xl p-3 group-hover:scale-110 transition-transform duration-300"> */}
+                  <Heart className="w-9 h-9 text-white group-hover:scale-110 transition-transform duration-300" />
+            
+                {/* </div> */}
+                <span className="text-3xl font-bold gradient-text bg-gradient-to-r from-white to-green-100 ">Food Link</span>
               </div>
               <p className="text-green-100 text-lg leading-relaxed mb-6 max-w-md">
                 Connecting surplus food with those who need it most. Together, we're building a world without food waste.

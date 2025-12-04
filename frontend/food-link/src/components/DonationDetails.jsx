@@ -18,7 +18,6 @@ import {
 import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
 import axios from 'axios';
 import { API_ENDPOINTS, BACKEND_BASE_URL } from '../config/api';
-import { GOOGLE_MAPS_API_KEY } from '../config/maps';
 import toast from 'react-hot-toast';
 
 const DonationDetails = ({ user }) => {
@@ -29,10 +28,9 @@ const DonationDetails = ({ user }) => {
   const [error, setError] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
 
-  // Google Maps loader - MUST be at the top before any conditional returns
   const { isLoaded: isMapLoaded, loadError: mapLoadError } = useJsApiLoader({
     id: 'google-map-script',
-    googleMapsApiKey: GOOGLE_MAPS_API_KEY
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API
   });
 
   useEffect(() => {

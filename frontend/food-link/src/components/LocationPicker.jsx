@@ -94,7 +94,6 @@ const LocationPicker = ({
           }
         },
         (error) => {
-          console.error('Error getting location:', error);
           alert('Unable to get your location. Please ensure location permissions are enabled.');
         }
       );

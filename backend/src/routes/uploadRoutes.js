@@ -5,7 +5,6 @@ const multer = require("multer");
 const authMiddleware = require("../middleware/authMiddleware");
 const authRoles = require("../middleware/authRoles");
 
-// Ensure uploads directory exists
 const uploadsDir = path.join(process.cwd(), "uploads");
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
@@ -34,7 +33,6 @@ const upload = multer({ storage, fileFilter, limits: { fileSize: 10 * 1024 * 102
 
 const router = express.Router();
 
-// Upload single image
 router.post("/image", authMiddleware, authRoles('donor'), (req, res) => {
   upload.single("image")(req, res, (err) => {
     if (err) {
@@ -51,14 +49,12 @@ router.post("/image", authMiddleware, authRoles('donor'), (req, res) => {
       return res.status(400).json({ message: "No file uploaded" });
     }
     
-    // Return full URL with backend base URL
     const backendUrl = process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 3000}`;
     const publicUrl = `${backendUrl}/uploads/${req.file.filename}`;
     res.status(201).json({ url: publicUrl, filename: req.file.filename });
   });
 });
 
-// Upload multiple images
 router.post("/images", authMiddleware, authRoles('donor'), (req, res) => {
   upload.array("images", 10)(req, res, (err) => {
     if (err) {
@@ -78,14 +74,12 @@ router.post("/images", authMiddleware, authRoles('donor'), (req, res) => {
       return res.status(400).json({ message: "No files uploaded" });
     }
     
-    // Return full URLs with backend base URL
     const backendUrl = process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 3000}`;
     const urls = req.files.map((f) => `${backendUrl}/uploads/${f.filename}`);
     res.status(201).json({ urls });
   });
 });
 
-// Error handling middleware for multer
 router.use((err, req, res, next) => {
   if (err instanceof multer.MulterError) {
     return res.status(400).json({ message: `Upload error: ${err.message}` });

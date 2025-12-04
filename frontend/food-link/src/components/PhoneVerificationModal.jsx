@@ -40,7 +40,6 @@ const PhoneVerificationModal = ({ isOpen, onClose, onSuccess }) => {
         }
       });
     } catch (error) {
-      console.error('Error setting up reCAPTCHA:', error);
     }
   };
 
@@ -83,7 +82,6 @@ const PhoneVerificationModal = ({ isOpen, onClose, onSuccess }) => {
       setResendTimer(60); // 60 seconds cooldown
       toast.success('OTP sent successfully!');
     } catch (error) {
-      console.error('Error sending OTP:', error);
       let errorMessage = 'Failed to send OTP. Please try again.';
       
       if (error.code === 'auth/configuration-not-found') {
@@ -158,7 +156,6 @@ const PhoneVerificationModal = ({ isOpen, onClose, onSuccess }) => {
         }, 1500);
       }
     } catch (error) {
-      console.error('Error verifying OTP:', error);
       let errorMessage = 'Invalid OTP. Please try again.';
       
       if (error.code === 'auth/invalid-verification-code') {

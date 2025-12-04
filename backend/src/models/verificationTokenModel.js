@@ -21,10 +21,8 @@ const verificationTokenSchema = new mongoose.Schema({
     }
 });
 
-// Index for automatic cleanup of expired tokens
 verificationTokenSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
-// Index for quick token lookup with unique constraint
 verificationTokenSchema.index({ token: 1 }, { unique: true });
 
 module.exports = mongoose.model('VerificationToken', verificationTokenSchema);

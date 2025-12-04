@@ -187,22 +187,9 @@ const verifyEmail = async (req, res) => {
 
         await VerificationToken.deleteOne({ _id: tokenDoc._id });
 
-        const loginToken = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
-            expiresIn: '7d'
-        });
-
         res.json({
             success: true,
-            message: 'Email verified successfully! You can now log in.',
-            autoLogin: true,
-            token: loginToken,
-            user: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-                isEmailVerified: true
-            }
+            message: 'Your email has been successfully verified. You can now log in to your account.'
         });
 
     } catch (error) {
@@ -276,7 +263,6 @@ const resendVerificationEmail = async (req, res) => {
     }
 };
 
-// Forgot Password - Send reset email
 const forgotPassword = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -292,20 +278,16 @@ const forgotPassword = async (req, res) => {
     try {
         const user = await User.findOne({ email });
         if (!user) {
-            // For security, don't reveal if email exists or not
             return res.json({
                 success: true,
                 message: 'If an account with that email exists, a password reset link has been sent.'
             });
         }
 
-        // Delete any existing reset tokens for this user
         await PasswordResetToken.deleteMany({ userId: user._id });
 
-        // Generate reset token
         const resetToken = crypto.randomBytes(32).toString('hex');
 
-        // Save token to database
         const tokenDoc = new PasswordResetToken({
             userId: user._id,
             token: resetToken,
@@ -313,7 +295,6 @@ const forgotPassword = async (req, res) => {
         });
         await tokenDoc.save();
 
-        // Send email
         try {
             await sendPasswordResetEmail(email, user.name, resetToken);
             res.json({
@@ -321,7 +302,6 @@ const forgotPassword = async (req, res) => {
                 message: 'If an account with that email exists, a password reset link has been sent.'
             });
         } catch (emailError) {
-            console.error('Email error:', emailError);
             res.status(500).json({
                 success: false,
                 message: 'Failed to send reset email. Please try again later.'
@@ -329,7 +309,6 @@ const forgotPassword = async (req, res) => {
         }
 
     } catch (error) {
-        console.error('Forgot password error:', error);
         res.status(500).json({
             success: false,
             message: 'Server error',
@@ -338,7 +317,6 @@ const forgotPassword = async (req, res) => {
     }
 };
 
-// Reset Password - Update password with token
 const resetPassword = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -352,7 +330,6 @@ const resetPassword = async (req, res) => {
     const { token, newPassword } = req.body;
 
     try {
-        // Find valid token
         const tokenDoc = await PasswordResetToken.findOne({
             token,
             expiresAt: { $gt: new Date() }
@@ -365,7 +342,6 @@ const resetPassword = async (req, res) => {
             });
         }
 
-        // Find user
         const user = await User.findById(tokenDoc.userId);
         if (!user) {
             return res.status(404).json({
@@ -374,15 +350,12 @@ const resetPassword = async (req, res) => {
             });
         }
 
-        // Hash new password
         const salt = await bcrypt.genSalt(10);
         const passwordHash = await bcrypt.hash(newPassword, salt);
 
-        // Update password
         user.passwordHash = passwordHash;
         await user.save();
 
-        // Delete used token
         await PasswordResetToken.deleteOne({ _id: tokenDoc._id });
 
         res.json({
@@ -391,7 +364,6 @@ const resetPassword = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Reset password error:', error);
         res.status(500).json({
             success: false,
             message: 'Server error',
@@ -400,7 +372,6 @@ const resetPassword = async (req, res) => {
     }
 };
 
-// Update Phone Number
 const updatePhone = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -440,7 +411,6 @@ const updatePhone = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Update phone error:', error);
         res.status(500).json({
             success: false,
             message: 'Server error',
@@ -468,8 +438,6 @@ const verifyPhoneNumber = async (req, res) => {
             });
         }
 
-        // Firebase has already verified the phone number on the client side
-        // We just need to save it and mark as verified
         user.phoneNumber = phoneNumber;
         user.isPhoneVerified = true;
         await user.save();
@@ -487,7 +455,6 @@ const verifyPhoneNumber = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Verify phone error:', error);
         res.status(500).json({
             success: false,
             message: 'Server error',

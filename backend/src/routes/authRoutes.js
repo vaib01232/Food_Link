@@ -39,10 +39,8 @@ router.post(
     loginUser
 );
 
-// Email verification endpoint
 router.get('/verify-email', verifyEmail);
 
-// Resend verification email endpoint
 router.post(
     '/resend-verification',
     [
@@ -51,7 +49,6 @@ router.post(
     resendVerificationEmail
 );
 
-// Forgot password endpoint
 router.post(
     '/forgot-password',
     [
@@ -60,7 +57,6 @@ router.post(
     forgotPassword
 );
 
-// Reset password endpoint
 router.post(
     '/reset-password',
     [
@@ -72,7 +68,6 @@ router.post(
     resetPassword
 );
 
-// Update phone number endpoint (requires authentication)
 router.post(
     '/update-phone',
     authMiddleware,
@@ -82,8 +77,6 @@ router.post(
     updatePhone
 );
 
-// Verify phone number endpoint (requires authentication)
-// Firebase handles OTP verification on frontend, this just saves the verified number
 router.post(
     '/verify-phone',
     authMiddleware,
