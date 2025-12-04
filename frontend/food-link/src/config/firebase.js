@@ -1,5 +1,5 @@
 import { initializeApp, getApps } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API,
@@ -27,4 +27,5 @@ if (!getApps().length) {
 }
 
 export const auth = getAuth(app);
+export { RecaptchaVerifier, signInWithPhoneNumber };
 export default app;

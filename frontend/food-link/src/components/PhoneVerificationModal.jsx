@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Phone, Loader, CheckCircle, AlertCircle } from 'lucide-react';
-import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
-import { auth } from '../config/firebase';
+import { RecaptchaVerifier, signInWithPhoneNumber, auth } from '../config/firebase';
 import axios from 'axios';
 import { API_ENDPOINTS } from '../config/api';
 import toast from 'react-hot-toast';
