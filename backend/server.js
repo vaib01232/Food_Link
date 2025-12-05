@@ -22,6 +22,9 @@ const path = require('path');
 
 const app = express();
 
+// Trust proxy - required for Render/Heroku/Railway deployment
+app.set('trust proxy', 1);
+
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
