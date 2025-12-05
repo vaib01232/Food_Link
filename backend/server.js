@@ -42,8 +42,23 @@ const apiLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+const allowedOrigins = [
+  process.env.FRONTEND_URL || "http://localhost:5173",
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "https://food-link-liart.vercel.app"
+];
+
 app.use(cors({ 
-  origin: process.env.FRONTEND_URL || "http://localhost:5173", 
+  origin: function(origin, callback) {
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin) || origin.includes('vercel.app')) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true 
 }));
 app.use(express.json({ limit: '10mb' }));
