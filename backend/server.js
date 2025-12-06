@@ -3,6 +3,16 @@ require('dotenv').config();
 const validateEnv = require('./src/utils/validateEnv');
 validateEnv();
 
+// Log environment variables on startup for debugging
+console.log('=== Environment Variables Check ===');
+console.log('EMAIL_SERVICE:', process.env.EMAIL_SERVICE || 'NOT SET');
+console.log('EMAIL_USER:', process.env.EMAIL_USER ? 'SET' : 'NOT SET');
+console.log('EMAIL_PASSWORD:', process.env.EMAIL_PASSWORD ? 'SET' : 'NOT SET');
+console.log('EMAIL_FROM:', process.env.EMAIL_FROM || 'NOT SET');
+console.log('FRONTEND_URL:', process.env.FRONTEND_URL || 'NOT SET');
+console.log('BACKEND_URL:', process.env.BACKEND_URL || 'NOT SET');
+console.log('===================================');
+
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');

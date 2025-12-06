@@ -203,33 +203,43 @@ const verifyEmail = async (req, res) => {
 
 const resendVerificationEmail = async (req, res) => {
     try {
+        console.log('[RESEND] Starting resend verification process');
         const { email } = req.body;
+        console.log('[RESEND] Email requested:', email);
 
         if (!email) {
+            console.log('[RESEND] No email provided');
             return res.status(400).json({
                 success: false,
                 message: 'Email is required'
             });
         }
 
+        console.log('[RESEND] Looking up user...');
         const user = await User.findOne({ email });
 
         if (!user) {
+            console.log('[RESEND] User not found');
             return res.status(404).json({
                 success: false,
                 message: 'User not found'
             });
         }
 
+        console.log('[RESEND] User found:', user._id);
+
         if (user.isEmailVerified) {
+            console.log('[RESEND] Email already verified');
             return res.status(400).json({
                 success: false,
                 message: 'Email is already verified'
             });
         }
 
+        console.log('[RESEND] Deleting old tokens...');
         await VerificationToken.deleteMany({ userId: user._id });
 
+        console.log('[RESEND] Generating new token...');
         const verificationToken = crypto.randomBytes(32).toString('hex');
         
         const tokenDoc = new VerificationToken({
@@ -238,9 +248,12 @@ const resendVerificationEmail = async (req, res) => {
             expiresAt: new Date(Date.now() + 30 * 60 * 1000)
         });
         await tokenDoc.save();
+        console.log('[RESEND] Token saved');
 
         try {
+            console.log('[RESEND] Calling sendVerificationEmail...');
             await sendVerificationEmail(email, user.name, verificationToken);
+            console.log('[RESEND] Email sent successfully');
 
             res.json({
                 success: true,
@@ -248,6 +261,8 @@ const resendVerificationEmail = async (req, res) => {
                 email: email
             });
         } catch (emailError) {
+            console.error('[RESEND] Email sending failed:', emailError.message);
+            console.error('[RESEND] Full error:', emailError);
             res.status(500).json({
                 success: false,
                 message: 'Failed to send verification email. Please try again later.'
@@ -255,6 +270,8 @@ const resendVerificationEmail = async (req, res) => {
         }
 
     } catch (error) {
+        console.error('[RESEND] Controller error:', error.message);
+        console.error('[RESEND] Full error:', error);
         res.status(500).json({
             success: false,
             message: 'Server error',
