@@ -1,11 +1,17 @@
 const nodemailer = require('nodemailer');
 
 const createTransporter = () => {
+  console.log('[EMAIL] Creating transporter...');
+  console.log('[EMAIL] EMAIL_SERVICE:', process.env.EMAIL_SERVICE);
+  console.log('[EMAIL] EMAIL_USER:', process.env.EMAIL_USER ? 'SET' : 'MISSING');
+  console.log('[EMAIL] EMAIL_PASSWORD:', process.env.EMAIL_PASSWORD ? 'SET' : 'MISSING');
+  
   if (process.env.EMAIL_SERVICE === 'gmail') {
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
-      console.error('Email configuration error: EMAIL_USER or EMAIL_PASSWORD is missing');
+      console.error('[EMAIL] Configuration error: EMAIL_USER or EMAIL_PASSWORD is missing');
       return null;
     }
+    console.log('[EMAIL] Using Gmail service');
     return nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -14,6 +20,7 @@ const createTransporter = () => {
       }
     });
   } else if (process.env.SMTP_HOST) {
+    console.log('[EMAIL] Using SMTP service');
     return nodemailer.createTransporter({
       host: process.env.SMTP_HOST,
       port: parseInt(process.env.SMTP_PORT) || 587,
@@ -24,16 +31,25 @@ const createTransporter = () => {
       }
     });
   } else {
-    console.warn('No email configuration found. Running in development mode - emails will not be sent.');
+    console.warn('[EMAIL] No email configuration found. Running in development mode - emails will not be sent.');
     return null;
   }
 };
 
 const sendVerificationEmail = async (email, name, verificationToken) => {
   try {
+    console.log('[EMAIL] sendVerificationEmail called for:', email);
     const transporter = createTransporter();
+    
+    if (!transporter) {
+      console.error('[EMAIL] Transporter is null, cannot send email');
+      throw new Error('Email transporter not configured');
+    }
+    
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    console.log('[EMAIL] Frontend URL:', frontendUrl);
     const verificationUrl = `${frontendUrl}/verify-email?token=${verificationToken}`;
+    console.log('[EMAIL] Verification URL:', verificationUrl);
     
     const mailOptions = {
       from: `"Food Link" <${process.env.EMAIL_FROM || 'noreply@foodlink.com'}>`,
@@ -103,15 +119,17 @@ const sendVerificationEmail = async (email, name, verificationToken) => {
     };
 
     if (transporter) {
+      console.log('[EMAIL] Sending email to:', email);
       const info = await transporter.sendMail(mailOptions);
-      console.log('Verification email sent successfully:', info.messageId);
+      console.log('[EMAIL] Verification email sent successfully:', info.messageId);
       return { success: true, messageId: info.messageId };
     } else {
-      console.log('Development mode: Email not sent, verification URL:', verificationUrl);
+      console.log('[EMAIL] Development mode: Email not sent, verification URL:', verificationUrl);
       return { success: true, messageId: 'dev-mode', verificationUrl };
     }
   } catch (error) {
-    console.error('Email sending error:', error.message);
+    console.error('[EMAIL] Email sending error:', error.message);
+    console.error('[EMAIL] Full error:', error);
     throw error;
   }
 };
