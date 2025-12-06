@@ -57,33 +57,14 @@ app.use(customMongoSanitize);
 
 app.use(morgan('dev'));
 
-// Rate limiters defined here but applied per route
-const authLimiter = rateLimit({
-  windowMs: 30 * 60 * 1000,
-  max: 100,
-  message: 'Too many authentication attempts, please try again later',
-  standardHeaders: false,
-  legacyHeaders: false,
-  skip: (req) => req.method === 'OPTIONS', // Skip rate limiting for preflight
-});
-
-const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 500,
-  message: 'Too many requests, please try again later',
-  standardHeaders: true,
-  legacyHeaders: false,
-  skip: (req) => req.method === 'OPTIONS', // Skip rate limiting for preflight
-});
-
 app.get('/', (req,res) => res.send({ok: true, msg: 'Food_Link API'}));
 
-app.use('/api/auth', authLimiter, authRoutes);
-app.use('/api/donations', apiLimiter, donationRoutes);
-app.use('/api/uploads', apiLimiter, uploadRoutes);
-app.use('/api/admin', apiLimiter, adminRoutes);
-app.use('/api/contact', apiLimiter, contactRoutes);
-app.use('/api/notifications', apiLimiter, notificationRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/donations', donationRoutes);
+app.use('/api/uploads', uploadRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/contact', contactRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
