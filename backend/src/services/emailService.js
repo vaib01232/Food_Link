@@ -2,6 +2,10 @@ const nodemailer = require('nodemailer');
 
 const createTransporter = () => {
   if (process.env.EMAIL_SERVICE === 'gmail') {
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+      console.error('Email configuration error: EMAIL_USER or EMAIL_PASSWORD is missing');
+      return null;
+    }
     return nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -20,6 +24,7 @@ const createTransporter = () => {
       }
     });
   } else {
+    console.warn('No email configuration found. Running in development mode - emails will not be sent.');
     return null;
   }
 };
@@ -99,11 +104,14 @@ const sendVerificationEmail = async (email, name, verificationToken) => {
 
     if (transporter) {
       const info = await transporter.sendMail(mailOptions);
+      console.log('Verification email sent successfully:', info.messageId);
       return { success: true, messageId: info.messageId };
     } else {
+      console.log('Development mode: Email not sent, verification URL:', verificationUrl);
       return { success: true, messageId: 'dev-mode', verificationUrl };
     }
   } catch (error) {
+    console.error('Email sending error:', error.message);
     throw error;
   }
 };

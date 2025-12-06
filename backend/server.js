@@ -29,22 +29,7 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 
-const authLimiter = rateLimit({
-  windowMs: 30 * 60 * 1000,
-  max: 100,
-  message: 'Too many authentication attempts, please try again later',
-  standardHeaders: false,
-  legacyHeaders: false,
-});
-
-const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 500,
-  message: 'Too many requests, please try again later',
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
+// CORS must come BEFORE rate limiters to handle OPTIONS preflight
 const allowedOrigins = [
   process.env.FRONTEND_URL || "http://localhost:5173",
   "http://localhost:5173",
@@ -64,12 +49,32 @@ app.use(cors({
   },
   credentials: true 
 }));
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 app.use(customMongoSanitize);
 
 app.use(morgan('dev'));
+
+// Rate limiters defined here but applied per route
+const authLimiter = rateLimit({
+  windowMs: 30 * 60 * 1000,
+  max: 100,
+  message: 'Too many authentication attempts, please try again later',
+  standardHeaders: false,
+  legacyHeaders: false,
+  skip: (req) => req.method === 'OPTIONS', // Skip rate limiting for preflight
+});
+
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 500,
+  message: 'Too many requests, please try again later',
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => req.method === 'OPTIONS', // Skip rate limiting for preflight
+});
 
 app.get('/', (req,res) => res.send({ok: true, msg: 'Food_Link API'}));
 
