@@ -31,15 +31,16 @@ const PhoneVerificationModal = ({ isOpen, onClose, onSuccess }) => {
     try {
       window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
         size: 'invisible',
-        callback: (response) => {
-          // reCAPTCHA solved
+        callback: () => {
+          // reCAPTCHA solved - callback required but response not needed
         },
         'expired-callback': () => {
           // Response expired. Ask user to solve reCAPTCHA again.
           toast.error('reCAPTCHA expired. Please try again.');
         }
       });
-    } catch (error) {
+    } catch {
+      // Silently ignore reCAPTCHA setup errors
     }
   };
 

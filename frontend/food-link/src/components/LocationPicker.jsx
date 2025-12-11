@@ -6,7 +6,6 @@ const LocationPicker = ({
   onLocationSelect, 
   initialLat, 
   initialLng, 
-  initialAddress,
   apiKey 
 }) => {
   const [markerPosition, setMarkerPosition] = useState(
@@ -27,12 +26,6 @@ const LocationPicker = ({
     id: 'google-map-script',
     googleMapsApiKey: apiKey
   });
-
-  // Default center (you can change this to your city)
-  const defaultCenter = {
-    lat: 28.6139, // New Delhi coordinates - change to your preferred city
-    lng: 77.2090
-  };
 
   const mapContainerStyle = {
     width: '100%',
@@ -93,7 +86,7 @@ const LocationPicker = ({
             mapRef.current.setZoom(17);
           }
         },
-        (error) => {
+        () => {
           alert('Unable to get your location. Please ensure location permissions are enabled.');
         }
       );

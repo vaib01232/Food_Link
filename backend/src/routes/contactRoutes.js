@@ -27,7 +27,7 @@ router.post('/', async (req, res) => {
       success: true,
       message: 'Your message has been sent successfully. We\'ll get back to you soon!',
     });
-  } catch (error) {
+  } catch {
     return res.status(500).json({
       success: false,
       message: 'Failed to send message. Please try again later.',

@@ -174,7 +174,7 @@ const claimDonation = async (req, res) => {
                     donationTitle: donation.title
                 }
             });
-        } catch (notifErr) {
+        } catch (_notifErr) {
         }
 
         try {
@@ -193,7 +193,7 @@ const claimDonation = async (req, res) => {
                     pickupGeo: donation.pickupGeo
                 }
             );
-        } catch (emailErr) {
+        } catch (_emailErr) {
         }
 
         res.json({ 
@@ -402,7 +402,8 @@ const cancelClaim = async (req, res) => {
                     donationTitle: donation.title
                 }
             });
-        } catch (notifErr) {
+        } catch {
+            // Silently ignore notification errors
         }
 
         res.json({ 
@@ -458,7 +459,8 @@ const deleteDonation = async (req, res) => {
                         donationTitle: donationTitle
                     }
                 });
-            } catch (notifErr) {
+            } catch {
+                // Silently ignore notification errors
             }
         }
 

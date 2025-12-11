@@ -35,6 +35,7 @@ const DonationDetails = ({ user }) => {
 
   useEffect(() => {
     fetchDonationDetails();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const fetchDonationDetails = async () => {

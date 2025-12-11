@@ -77,7 +77,7 @@ const Dashboard = ({ user }) => {
           availableNearby: availableDonations.length
         });
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to load dashboard data');
     } finally {
       setLoading(false);
@@ -103,8 +103,8 @@ const Dashboard = ({ user }) => {
       
       // Refresh donations
       fetchStats();
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to delete donation');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete donation');
     }
   };
 
@@ -115,6 +115,7 @@ const Dashboard = ({ user }) => {
 
   useEffect(() => {
     fetchStats();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user.role]);
 
 

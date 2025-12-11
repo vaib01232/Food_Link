@@ -5,10 +5,9 @@ validateEnv();
 
 // Log environment variables on startup for debugging
 console.log('=== Environment Variables Check ===');
-console.log('EMAIL_SERVICE:', process.env.EMAIL_SERVICE || 'NOT SET');
-console.log('EMAIL_USER:', process.env.EMAIL_USER ? 'SET' : 'NOT SET');
-console.log('EMAIL_PASSWORD:', process.env.EMAIL_PASSWORD ? 'SET' : 'NOT SET');
-console.log('EMAIL_FROM:', process.env.EMAIL_FROM || 'NOT SET');
+console.log('SENDGRID_API_KEY:', process.env.SENDGRID_API_KEY ? 'SET' : 'NOT SET');
+console.log('SENDGRID_FROM_EMAIL:', process.env.SENDGRID_FROM_EMAIL || 'NOT SET');
+console.log('SENDGRID_SANDBOX_MODE:', process.env.SENDGRID_SANDBOX_MODE || 'false');
 console.log('FRONTEND_URL:', process.env.FRONTEND_URL || 'NOT SET');
 console.log('BACKEND_URL:', process.env.BACKEND_URL || 'NOT SET');
 console.log('===================================');
@@ -19,7 +18,6 @@ const morgan = require('morgan');
 const mongoose = require('mongoose');
 const cron = require('node-cron');
 const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
 const customMongoSanitize = require('./src/middleware/sanitize');
 const authRoutes = require('./src/routes/authRoutes');
 const donationRoutes = require('./src/routes/donationRoutes');
@@ -82,7 +80,7 @@ mongoose.connect(process.env.MONGO_URI)
 .then(() => {
   initializeCleanupService();
 })
-.catch(err => {
+.catch(_err => {
   process.exit(1);
 });
 
@@ -95,28 +93,30 @@ function initializeCleanupService() {
     cron.schedule(CLEANUP_INTERVAL, async () => {
       try {
         await removeExpiredDonations();
-      } catch (err) {
+      } catch {
+        // Silently ignore cleanup errors
       }
     });
     
-    removeExpiredDonations().catch(err => {});
+    removeExpiredDonations().catch(() => {});
   } else if (CLEANUP_MODE === 'mark') {
     cron.schedule(CLEANUP_INTERVAL, async () => {
       try {
         await markExpiredDonations();
         await removeOldExpiredDonations(CLEANUP_OLD_DAYS);
-      } catch (err) {
+      } catch {
+        // Silently ignore cleanup errors
       }
     });
     
     Promise.all([
       markExpiredDonations(),
       removeOldExpiredDonations(CLEANUP_OLD_DAYS)
-    ]).catch(err => {});
+    ]).catch(() => {});
   }
 }
 
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
   if (err.name === 'ValidationError') {
     return res.status(400).json({
       success: false,

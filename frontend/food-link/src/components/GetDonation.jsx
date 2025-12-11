@@ -38,7 +38,7 @@ const GetDonationsPage = ({ user: userProp }) => {
       
       setDonations(availableOnly);
       setError("");
-    } catch (error) {
+    } catch {
       setError("Failed to load donations. Please try again.");
       toast.error("Failed to load donations");
     } finally {
@@ -68,10 +68,6 @@ const GetDonationsPage = ({ user: userProp }) => {
     }
 
     await processClaim(donationId);
-  };
-
-  const isClaimedByCurrentUser = (donation) => {
-    return donation.reservedBy?._id === user?._id || donation.reservedBy === user?._id;
   };
 
   const processClaim = async (donationId) => {

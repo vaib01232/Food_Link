@@ -219,7 +219,7 @@ const resetPassword = async (req, res) => {
         return res.status(400).json({ errors: errors.array() });
     }
 
-    const { token, password } = req.body;
+    const { token, newPassword } = req.body;
 
     try {
         const resetToken = await PasswordResetToken.findOne({ token });
@@ -240,7 +240,7 @@ const resetPassword = async (req, res) => {
         }
 
         const salt = await bcrypt.genSalt(10);
-        user.passwordHash = await bcrypt.hash(password, salt);
+        user.passwordHash = await bcrypt.hash(newPassword, salt);
         await user.save();
 
         await PasswordResetToken.deleteOne({ _id: resetToken._id });
