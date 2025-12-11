@@ -19,6 +19,7 @@ const NotificationsPage = () => {
       return;
     }
     fetchNotifications();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, navigate]);
 
   const fetchNotifications = async () => {
@@ -53,7 +54,8 @@ const NotificationsPage = () => {
         )
       );
       setUnreadCount((prev) => Math.max(0, prev - 1));
-    } catch (error) {
+    } catch {
+      // Silently ignore mark as read errors
     }
   };
 
@@ -70,7 +72,7 @@ const NotificationsPage = () => {
       );
       setUnreadCount(0);
       toast.success("All notifications marked as read");
-    } catch (error) {
+    } catch {
       toast.error("Failed to mark all as read");
     }
   };

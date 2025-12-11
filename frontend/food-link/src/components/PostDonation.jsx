@@ -270,7 +270,7 @@ const PostDonationPage = () => {
         },
       };
 
-      const res = await axios.post(API_ENDPOINTS.DONATIONS.BASE,
+      await axios.post(API_ENDPOINTS.DONATIONS.BASE,
         donationData,
         {
           headers: { Authorization: `Bearer ${token}` },

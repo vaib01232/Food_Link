@@ -19,7 +19,8 @@ const optionalAuth = async (req, res, next) => {
                     email: user.email
                 };
             }
-        } catch (err) {
+        } catch {
+            // Silently ignore auth errors for optional auth
         }
     }
     next();

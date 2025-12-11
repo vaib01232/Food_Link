@@ -22,7 +22,8 @@ const Navbar = ({ user, setUser, currentPage }) => {
         if (response.data.success) {
           setUnreadCount(response.data.unreadCount);
         }
-      } catch (error) {
+      } catch {
+        // Silently ignore notification count fetch errors
       }
     };
 

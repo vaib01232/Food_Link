@@ -31,7 +31,7 @@ const App = () => {
         setUser(parsedUser);
         
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      } catch (error) {
+      } catch {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
       }

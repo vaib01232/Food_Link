@@ -9,8 +9,8 @@ const sanitize = (obj) => {
 
   const sanitized = {};
   for (const key in obj) {
-    if (obj.hasOwnProperty(key)) {
-      const sanitizedKey = key.replace(/[$\.]/g, '_');
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      const sanitizedKey = key.replace(/[$.]/, '_');
       sanitized[sanitizedKey] = sanitize(obj[key]);
     }
   }
@@ -35,7 +35,7 @@ const customMongoSanitize = (req, res, next) => {
     }
     
     next();
-  } catch (err) {
+  } catch {
     next();
   }
 };

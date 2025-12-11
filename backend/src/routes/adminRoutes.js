@@ -1,10 +1,11 @@
 const express = require('express');
 const authMiddleware = require('../middleware/authMiddleware');
+const authRoles = require('../middleware/authRoles');
 const { removeExpiredDonations, markExpiredDonations, removeOldExpiredDonations } = require('../services/cleanupService');
 
 const router = express.Router();
 
-router.post('/cleanup', authMiddleware, async (req, res) => {
+router.post('/cleanup', authMiddleware, authRoles('admin'), async (req, res) => {
   try {
     const { mode = 'delete', oldDays = 7 } = req.body;
 
@@ -32,7 +33,7 @@ router.post('/cleanup', authMiddleware, async (req, res) => {
   }
 });
 
-router.get('/cleanup/status', authMiddleware, async (req, res) => {
+router.get('/cleanup/status', authMiddleware, authRoles('admin'), async (req, res) => {
   try {
     const Donation = require('../models/donationModel');
     const now = new Date();

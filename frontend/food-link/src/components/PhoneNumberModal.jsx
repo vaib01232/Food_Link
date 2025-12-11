@@ -19,7 +19,7 @@ const PhoneNumberModal = ({ isOpen, onClose, onSuccess }) => {
     }
 
     // Basic phone validation
-    const phoneRegex = /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/;
+    const phoneRegex = /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/;
     if (!phoneRegex.test(phoneNumber)) {
       toast.error('Please enter a valid phone number');
       return;
