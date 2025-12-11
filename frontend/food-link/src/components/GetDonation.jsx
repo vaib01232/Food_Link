@@ -4,7 +4,9 @@ import { Heart, Users, Clock, MapPin, Calendar, Eye } from 'lucide-react';
 import axios from 'axios';
 import { API_ENDPOINTS, BACKEND_BASE_URL } from '../config/api';
 import toast from 'react-hot-toast';
-import PhoneVerificationModal from './PhoneVerificationModal';
+// Switched from PhoneVerificationModal (Firebase OTP) to PhoneNumberModal (simple input)
+// TODO: Re-enable Firebase OTP when reCAPTCHA Enterprise is properly configured
+import PhoneNumberModal from './PhoneNumberModal';
 
 const GetDonationsPage = ({ user: userProp }) => {
   const navigate = useNavigate();
@@ -248,8 +250,8 @@ const GetDonationsPage = ({ user: userProp }) => {
         </div>
       </div>
 
-      {/* Phone Verification Modal */}
-      <PhoneVerificationModal
+      {/* Phone Number Modal (simplified - no OTP verification) */}
+      <PhoneNumberModal
         isOpen={showPhoneModal}
         onClose={() => {
           setShowPhoneModal(false);
