@@ -16,7 +16,9 @@ import {
 import { API_ENDPOINTS, BACKEND_BASE_URL } from '../config/api';
 import toast from 'react-hot-toast';
 import LocationPicker from './LocationPicker';
-import PhoneVerificationModal from './PhoneVerificationModal';
+// Switched from PhoneVerificationModal (Firebase OTP) to PhoneNumberModal (simple input)
+// TODO: Re-enable Firebase OTP when reCAPTCHA Enterprise is properly configured
+import PhoneNumberModal from './PhoneNumberModal';
 
 const PostDonationPage = () => {
   const navigate = useNavigate();
@@ -699,8 +701,8 @@ const PostDonationPage = () => {
         </div>
       )}
 
-      {/* Phone Verification Modal */}
-      <PhoneVerificationModal
+      {/* Phone Number Modal (simplified - no OTP verification) */}
+      <PhoneNumberModal
         isOpen={showPhoneModal}
         onClose={() => setShowPhoneModal(false)}
         onSuccess={() => {
